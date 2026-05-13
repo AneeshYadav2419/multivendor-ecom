@@ -8,7 +8,7 @@ import { VendorStatus } from "@prisma/client";
 export const updateVendorProfileSchema = z.object({
   body: z.object({
     storeName: z
-      .string({ required_error: "Store name is required" })
+      .string({ message: "Store name is required" })
       .min(3, "Store name must be at least 3 characters")
       .max(50, "Store name cannot exceed 50 characters")
       .trim()
@@ -27,12 +27,13 @@ export const updateVendorProfileSchema = z.object({
  */
 export const updateVendorStatusSchema = z.object({
   params: z.object({
-    vendorId: z.string({ required_error: "Vendor ID is required" }).cuid("Invalid Vendor ID format"),
+    vendorId: z.string({ message: "Vendor ID is required" }).cuid("Invalid Vendor ID format"),
   }),
   body: z.object({
     status: z.nativeEnum(VendorStatus, {
-      errorMap: () => ({ message: "Status must be PENDING, APPROVED, REJECTED, or SUSPENDED" }),
+      message: "Status must be PENDING, APPROVED, REJECTED, or SUSPENDED",
     }),
+
     reason: z.string().max(255, "Reason cannot exceed 255 characters").optional(),
   }).refine((data) => {
     if ((data.status === VendorStatus.REJECTED || data.status === VendorStatus.SUSPENDED) && !data.reason) {
@@ -50,6 +51,6 @@ export const updateVendorStatusSchema = z.object({
  */
 export const vendorIdParamSchema = z.object({
   params: z.object({
-    vendorId: z.string({ required_error: "Vendor ID is required" }).cuid("Invalid Vendor ID format"),
+    vendorId: z.string({ message: "Vendor ID is required" }).cuid("Invalid Vendor ID format"),
   }),
 });

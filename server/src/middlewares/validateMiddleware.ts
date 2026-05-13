@@ -22,13 +22,12 @@ export const validate =
       })) as any;
 
 
-      // Assign the validated data back to the request object
-      // This ensures that the rest of the application uses clean, validated data
+      // Assign the validated body back to the request object
+      // We only do this for the body as query/params are often read-only in Express 5
       req.body = validated.body;
-      req.query = validated.query;
-      req.params = validated.params;
 
       next();
+
     } catch (error) {
       // If validation fails, Zod throws a ZodError which is handled by our global errorHandler
       next(error);
