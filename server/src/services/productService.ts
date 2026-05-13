@@ -156,8 +156,12 @@ export const getVendorProductsService = async (userId: string) => {
  * Get all products with advanced filtering, search, and pagination.
  */
 export const getAllProductsService = async (filters: any) => {
-  const { page, limit, search, minPrice, maxPrice, categoryId, sortBy } = filters;
+  const page = Number(filters.page) || 1;
+  const limit = Number(filters.limit) || 10;
+  const { search, minPrice, maxPrice, categoryId, sortBy } = filters;
+  
   const skip = (page - 1) * limit;
+
 
   // Build where clause
   const where: any = { isActive: true };
