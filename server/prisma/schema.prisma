@@ -21,6 +21,14 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum VendorStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -41,19 +49,20 @@ model User {
 }
 
 model Vendor {
-  id          String    @id @default(cuid())
+  id          String       @id @default(cuid())
   storeName   String
   description String?
-  isApproved  Boolean   @default(false)
+  status      VendorStatus @default(PENDING)
   
-  userId      String    @unique
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String       @unique
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   products    Product[]
 
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
+
 
 model Session {
   id           String   @id @default(cuid())

@@ -161,27 +161,32 @@ export const checkVendorApproval = async (
   try {
     const vendor = await prisma.vendor.findUnique({
       where: { userId: req.user!.userId },
-      select: { isApproved: true },
+      select: { status: true },
     });
 
     if (!vendor) {
       return next(
         new AppError(
-          "Vendor profile not found. Please contact support.",
+          "Vendor profile not found. Please register as a vendor.",
           404,
           "VENDOR_NOT_FOUND"
         )
       );
     }
 
-    if (!vendor.isApproved) {
-      return next(
-        new AppError(
-          "Your vendor account is pending admin approval. You will be notified once your store is approved.",
-          403,
-          "VENDOR_NOT_APPROVED"
-        )
-      );
+    if (vendor.status !== "APPROVED") {
+      let message = "Your vendor account is pending admin approval.";
+      let code = "VENDOR_PENDING";
+
+      if (vendor.status === "REJECTED") {
+        message = "Your vendor application was rejected. Please contact support.";
+        code = "VENDOR_REJECTED";
+      } else if (vendor.status === "SUSPENDED") {
+        message = "Your vendor account has been suspended due to policy violations.";
+        code = "VENDOR_SUSPENDED";
+      }
+
+      return next(new AppError(message, 403, code));
     }
 
     next();
@@ -189,3 +194,4 @@ export const checkVendorApproval = async (
     next(error);
   }
 };
+

@@ -104,7 +104,7 @@ export const registerUser = async (input: RegisterInput) => {
               create: {
                 storeName: storeName?.trim() || `${name.trim()}'s Store`,
                 description: "Welcome to my store!",
-                isApproved: false, // Admin must approve before vendor can operate
+                status: "PENDING", // Admin must approve before vendor can operate
               },
             }
           : undefined,
@@ -119,7 +119,7 @@ export const registerUser = async (input: RegisterInput) => {
         select: {
           id: true,
           storeName: true,
-          isApproved: true,
+          status: true,
         },
       },
     },
@@ -285,7 +285,7 @@ export const getUserById = async (userId: string) => {
           id: true,
           storeName: true,
           description: true,
-          isApproved: true,
+          status: true,
         },
       },
     },

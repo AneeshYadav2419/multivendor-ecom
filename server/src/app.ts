@@ -7,6 +7,8 @@ import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
 import { errorHandler } from "./middlewares/errorMiddleware.js";
 import authRoutes from "./routes/authRoutes.js";
+import vendorRoutes from "./routes/vendorRoutes.js";
+import productRoutes from "./routes/productRoutes.js";
 
 const app = express();
 
@@ -41,6 +43,10 @@ app.use(cookieParser());
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api/vendors", vendorRoutes);
+app.use("/api/products", productRoutes);
+
+
 
 // Health Check
 app.get("/health", (req, res) => {
