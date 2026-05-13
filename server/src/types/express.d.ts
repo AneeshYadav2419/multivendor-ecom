@@ -1,5 +1,5 @@
-import { User } from "@prisma/client";
-
+// Extend Express's Request interface to carry the verified user payload
+// after the `protect` middleware runs.
 declare global {
   namespace Express {
     interface Request {
@@ -10,3 +10,6 @@ declare global {
     }
   }
 }
+
+// Required to make TypeScript treat this as an ambient module declaration
+export {};

@@ -1,96 +1,191 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import prisma from "../config/prismaClient.js";
+import { AppError } from "./errorMiddleware.js";
 
-const JWT_SECRET = process.env.JWT_SECRET;
+// ─────────────────────────────────────────────────────────
+// Startup Guard — fail fast if secret is missing
+// ─────────────────────────────────────────────────────────
+const JWT_ACCESS_SECRET =
+  process.env.JWT_ACCESS_SECRET ?? process.env.JWT_SECRET;
 
-if (!JWT_SECRET) {
-    console.warn("WARNING: JWT_SECRET is not defined in environment variables. Using fallback for development only.");
+if (!JWT_ACCESS_SECRET) {
+  console.error(
+    "FATAL: JWT_ACCESS_SECRET is not defined. Server cannot start securely."
+  );
+  process.exit(1);
 }
 
-/**
- * Protect middleware to ensure user is authenticated
- */
+// ─────────────────────────────────────────────────────────
+// Types
+// ─────────────────────────────────────────────────────────
+interface JwtPayload {
+  userId: string;
+  role: "CUSTOMER" | "VENDOR" | "ADMIN";
+  iat: number;
+  exp: number;
+}
+
+// ─────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────
+const extractToken = (req: Request): string | undefined => {
+  const authHeader = req.headers.authorization;
+  if (authHeader?.toLowerCase().startsWith("bearer ")) {
+    return authHeader.split(" ")[1];
+  }
+  // Also support access token from httpOnly cookie (optional — for SSR clients)
+  if (req.cookies?.access_token) {
+    return req.cookies.access_token as string;
+  }
+  return undefined;
+};
+
+// ─────────────────────────────────────────────────────────
+// Middleware: protect
+// Verifies the access token and attaches user to req.user.
+// DB check catches deactivated/deleted users with still-valid tokens.
+// ─────────────────────────────────────────────────────────
 export const protect = async (
-    req: Request,
-    res: Response,
-    next: NextFunction
+  req: Request,
+  res: Response,
+  next: NextFunction
 ) => {
-    try {
-        let token;
+  try {
+    const token = extractToken(req);
 
-        // 1. Get token from Authorization header OR cookie
-        if (
-            req.headers.authorization &&
-            req.headers.authorization.toLowerCase().startsWith("bearer")
-        ) {
-            token = req.headers.authorization.split(" ")[1];
-        } else if (req.cookies?.token) {
-            token = req.cookies.token;
-        }
-
-        // 2. Check if token exists
-        if (!token) {
-            return res.status(401).json({
-                success: false,
-                message: "You are not logged in. Please log in to get access.",
-            });
-        }
-
-        // 3. Verify token
-        const decoded = jwt.verify(token, JWT_SECRET || "fallback_secret") as {
-            userId: string;
-            role: "CUSTOMER" | "VENDOR" | "ADMIN";
-            iat: number;
-            exp: number;
-        };
-
-        // 4. Check if user still exists in DB (to handle deleted users with valid tokens)
-        const currentUser = await prisma.user.findUnique({
-            where: { id: decoded.userId },
-            select: { id: true, role: true },
-        });
-
-        if (!currentUser) {
-            return res.status(401).json({
-                success: false,
-                message: "The user belonging to this token no longer exists.",
-            });
-        }
-
-        // 5. Grant access to protected route
-        req.user = {
-            userId: currentUser.id,
-            role: currentUser.role as "CUSTOMER" | "VENDOR" | "ADMIN",
-        };
-
-        next();
-    } catch (error: any) {
-        if (error.name === "TokenExpiredError") {
-            return res.status(401).json({
-                success: false,
-                message: "Your token has expired. Please log in again.",
-            });
-        }
-        return res.status(401).json({
-            success: false,
-            message: "Invalid token. Please log in again.",
-        });
+    if (!token) {
+      return next(
+        new AppError(
+          "Authentication required. Please log in.",
+          401,
+          "MISSING_TOKEN"
+        )
+      );
     }
-};
 
-/**
- * Middleware to restrict access based on roles
- */
-export const restrictTo = (...roles: ("CUSTOMER" | "VENDOR" | "ADMIN")[]) => {
-    return (req: Request, res: Response, next: NextFunction) => {
-        if (!req.user || !roles.includes(req.user.role)) {
-            return res.status(403).json({
-                success: false,
-                message: "You do not have permission to perform this action.",
-            });
-        }
-        next();
+    // Verify signature + expiry
+    let decoded: JwtPayload;
+    try {
+      decoded = jwt.verify(token, JWT_ACCESS_SECRET!, {
+        issuer: "multivendor-api",
+        audience: "multivendor-client",
+      }) as JwtPayload;
+    } catch (err: unknown) {
+      if (err instanceof jwt.TokenExpiredError) {
+        return next(
+          new AppError(
+            "Access token expired. Please refresh your session.",
+            401,
+            "TOKEN_EXPIRED"
+          )
+        );
+      }
+      return next(
+        new AppError(
+          "Invalid access token. Please log in again.",
+          401,
+          "INVALID_TOKEN"
+        )
+      );
+    }
+
+    // DB check: handle deleted users or deactivated accounts with live tokens
+    const currentUser = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      select: { id: true, role: true, isActive: true },
+    });
+
+    if (!currentUser) {
+      return next(
+        new AppError(
+          "The account belonging to this token no longer exists.",
+          401,
+          "USER_NOT_FOUND"
+        )
+      );
+    }
+
+    if (!currentUser.isActive) {
+      return next(
+        new AppError(
+          "Your account has been deactivated. Please contact support.",
+          403,
+          "ACCOUNT_DEACTIVATED"
+        )
+      );
+    }
+
+    // Attach verified user to request
+    req.user = {
+      userId: currentUser.id,
+      role: currentUser.role as "CUSTOMER" | "VENDOR" | "ADMIN",
     };
+
+    next();
+  } catch (error) {
+    next(error);
+  }
 };
 
+// ─────────────────────────────────────────────────────────
+// Middleware: restrictTo
+// RBAC guard — restricts route to one or more allowed roles.
+// Must be used AFTER protect.
+// ─────────────────────────────────────────────────────────
+export const restrictTo =
+  (...roles: ("CUSTOMER" | "VENDOR" | "ADMIN")[]) =>
+  (req: Request, res: Response, next: NextFunction) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return next(
+        new AppError(
+          "You do not have permission to perform this action.",
+          403,
+          "FORBIDDEN"
+        )
+      );
+    }
+    next();
+  };
+
+// ─────────────────────────────────────────────────────────
+// Middleware: checkVendorApproval
+// Ensures the authenticated vendor has been approved by an admin.
+// Must be used AFTER protect + restrictTo("VENDOR").
+// ─────────────────────────────────────────────────────────
+export const checkVendorApproval = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const vendor = await prisma.vendor.findUnique({
+      where: { userId: req.user!.userId },
+      select: { isApproved: true },
+    });
+
+    if (!vendor) {
+      return next(
+        new AppError(
+          "Vendor profile not found. Please contact support.",
+          404,
+          "VENDOR_NOT_FOUND"
+        )
+      );
+    }
+
+    if (!vendor.isApproved) {
+      return next(
+        new AppError(
+          "Your vendor account is pending admin approval. You will be notified once your store is approved.",
+          403,
+          "VENDOR_NOT_APPROVED"
+        )
+      );
+    }
+
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
