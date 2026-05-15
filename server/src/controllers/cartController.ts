@@ -1,88 +1,69 @@
 import { Request, Response, NextFunction } from "express";
 import * as cartService from "../services/cartService.js";
+import { catchAsync } from "../utils/catchAsync.js";
 
 /**
  * Add item to cart.
  */
-export const addToCart = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { productId, quantity } = req.body;
-    const item = await cartService.addToCartService(req.user!.userId, productId, quantity);
+export const addToCart = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const { productId, quantity } = req.body;
+  const item = await cartService.addToCartService(req.user!.userId, productId, quantity);
 
-    res.status(201).json({
-      success: true,
-      message: "Item added to cart",
-      data: item,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  res.status(201).json({
+    success: true,
+    message: "Item added to cart",
+    data: item,
+  });
+});
 
 /**
  * Get user's cart.
  */
-export const getCart = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const cart = await cartService.getCartService(req.user!.userId);
+export const getCart = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const cart = await cartService.getCartService(req.user!.userId);
 
-    res.status(200).json({
-      success: true,
-      data: cart || { items: [], totalAmount: 0, itemCount: 0 },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  res.status(200).json({
+    success: true,
+    data: cart || { items: [], totalAmount: 0, itemCount: 0 },
+  });
+});
 
 /**
  * Update cart item quantity.
  */
-export const updateCartItemQuantity = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const itemId = req.params.itemId as string;
-    const { quantity } = req.body;
-    const item = await cartService.updateCartItemQuantityService(req.user!.userId, itemId, quantity);
+export const updateCartItemQuantity = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const itemId = req.params.itemId as string;
+  const { quantity } = req.body;
+  const item = await cartService.updateCartItemQuantityService(req.user!.userId, itemId, quantity);
 
-    res.status(200).json({
-      success: true,
-      message: "Cart updated",
-      data: item,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  res.status(200).json({
+    success: true,
+    message: "Cart updated",
+    data: item,
+  });
+});
 
 /**
  * Remove item from cart.
  */
-export const removeFromCart = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const itemId = req.params.itemId as string;
-    await cartService.removeFromCartService(req.user!.userId, itemId);
+export const removeFromCart = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  const itemId = req.params.itemId as string;
+  await cartService.removeFromCartService(req.user!.userId, itemId);
 
-    res.status(200).json({
-      success: true,
-      message: "Item removed from cart",
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  res.status(200).json({
+    success: true,
+    message: "Item removed from cart",
+  });
+});
 
 /**
  * Clear the entire cart.
  */
-export const clearCart = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    await cartService.clearCartService(req.user!.userId);
+export const clearCart = catchAsync(async (req: Request, res: Response, next: NextFunction) => {
+  await cartService.clearCartService(req.user!.userId);
 
-    res.status(200).json({
-      success: true,
-      message: "Cart cleared successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  res.status(200).json({
+    success: true,
+    message: "Cart cleared successfully",
+  });
+});
