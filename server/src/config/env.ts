@@ -10,6 +10,11 @@ const envSchema = z.object({
   JWT_REFRESH_SECRET: z.string().min(1, "JWT_REFRESH_SECRET is required"),
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
   CORS_ORIGIN: z.string().default("http://localhost:3000"),
+  
+  // Razorpay
+  RAZORPAY_KEY_ID: z.string().min(1, "RAZORPAY_KEY_ID is required"),
+  RAZORPAY_KEY_SECRET: z.string().min(1, "RAZORPAY_KEY_SECRET is required"),
+  RAZORPAY_WEBHOOK_SECRET: z.string().optional(), // Optional for local dev without webhooks
 });
 
 const _env = envSchema.safeParse(process.env);

@@ -28,6 +28,12 @@ enum VendorStatus {
   SUSPENDED
 }
 
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
 
 model User {
   id        String   @id @default(cuid())
@@ -124,21 +130,29 @@ enum PaymentMethod {
 }
 
 model Order {
-  id              String      @id @default(cuid())
-  totalAmount     Decimal     @db.Decimal(10, 2)
-  status          OrderStatus @default(PENDING)
-  shippingAddress String
-  paymentMethod   PaymentMethod @default(COD)
-  
-  customerId      String
-  customer        User        @relation(fields: [customerId], references: [id])
-  
-  orderItems      OrderItem[]
+  id                String         @id @default(cuid())
 
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  totalAmount       Decimal        @db.Decimal(10,2)
 
-  @@index([customerId])
+  status            OrderStatus    @default(PENDING)
+
+  paymentStatus     PaymentStatus  @default(PENDING)
+
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+
+  shippingAddress   String
+
+  paymentMethod     PaymentMethod @default(COD)
+
+  customerId        String
+
+  customer          User @relation(fields: [customerId], references: [id])
+
+  orderItems        OrderItem[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 

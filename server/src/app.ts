@@ -12,6 +12,8 @@ import productRoutes from "./routes/productRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
+import webhookRoutes from "./routes/webhookRoutes.js";
 
 
 const app = express();
@@ -40,6 +42,9 @@ if (process.env.NODE_ENV !== "production") {
   app.use(morgan("dev"));
 }
 
+// Webhooks (must be before body parsers)
+app.use("/api/webhooks", webhookRoutes);
+
 // Parsing
 app.use(express.json({ limit: "10kb" })); // Body limit for security
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
@@ -53,6 +58,7 @@ app.use("/api/categories", categoryRoutes);
 
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/payments", paymentRoutes);
 
 
 
