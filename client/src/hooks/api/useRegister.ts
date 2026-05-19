@@ -43,33 +43,24 @@ import { useAuthStore } from "@/store/useAuthStore";
 export const useRegister = () => {
     const router = useRouter();
 
-    const login = useAuthStore(
-        (state) => state.login
-    );
-
     return useMutation({
         mutationFn: registerUser,
 
-        onSuccess: (data) => {
-            login(
-                data.user,
-                data.accessToken
-            );
-
-            toast.success(
-                "Account created successfully"
-            );
-
-            // ROLE-BASED REDIRECT
-            if (
-                data.user.role === "VENDOR"
-            ) {
-                router.push(
-                    "/vendor/dashboard"
+        onSuccess: (response) => {
+            const user = response?.data?.user;
+            
+            if (user?.role === "VENDOR") {
+                toast.success(
+                    "Vendor account registered successfully! Awaiting admin approval."
                 );
             } else {
-                router.push("/");
+                toast.success(
+                    "Account created successfully! Please log in."
+                );
             }
+
+            // Redirect all new signups to the login page so they can authenticate securely
+            router.push("/login");
         },
 
         onError: (error: any) => {
