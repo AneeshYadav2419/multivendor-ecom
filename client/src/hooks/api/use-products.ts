@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { api } from "../../../lib/axios";
+import { api } from "../../lib/api/axios";
 
 const fetchProducts = async () => {
     const res = await api.get("/products");
