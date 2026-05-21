@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import QueryProvider from "@/providers/query-provider";
+import { AuthHydrationProvider } from "@/providers/auth-hydration-provider";
 
 import { Toaster } from "sonner";
 
@@ -20,7 +21,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <QueryProvider>
-          {children}
+          <AuthHydrationProvider>
+            {children}
+          </AuthHydrationProvider>
 
           <Toaster
             richColors

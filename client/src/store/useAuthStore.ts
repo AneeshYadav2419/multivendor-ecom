@@ -1,44 +1,41 @@
 import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
 
-type User = {
-    id: string;
-    name: string;
-    email: string;
-    role: "CUSTOMER" | "VENDOR" | "ADMIN";
-};
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  role: "CUSTOMER" | "VENDOR" | "ADMIN";
+  createdAt: string;
+}
 
-type AuthState = {
-    user: User | null;
-    accessToken: string | null;
+interface AuthState {
+  user: AuthUser | null;
+  accessToken: string | null;
+  setUser: (user: AuthUser | null) => void;
+  setAccessToken: (token: string | null) => void;
+  logout: () => void;
+}
 
-    setUser: (user: User | null) => void;
-
-    setAccessToken: (token: string | null) => void;
-
-    login: (user: User, token: string) => void;
-
-    logout: () => void;
-};
-
-export const useAuthStore = create<AuthState>((set) => ({
-    user: null,
-
-    accessToken: null,
-
-    setUser: (user) => set({ user }),
-
-    setAccessToken: (token) =>
-        set({ accessToken: token }),
-
-    login: (user, token) =>
-        set({
-            user,
-            accessToken: token,
-        }),
-
-    logout: () =>
-        set({
-            user: null,
-            accessToken: null,
-        }),
-}));
+// ─────────────────────────────────────────────────────────
+// Zustand Auth Store
+// Persists user session details safely in localStorage, 
+// leaving short-lived accessTokens in memory.
+// ─────────────────────────────────────────────────────────
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set) => ({
+      user: null,
+      accessToken: null,
+      setUser: (user) => set({ user }),
+      setAccessToken: (accessToken) => set({ accessToken }),
+      logout: () => set({ user: null, accessToken: null }),
+    }),
+    {
+      name: "auramarket-auth-session",
+      storage: createJSONStorage(() => localStorage),
+      // Partialize keeps accessToken in-memory ONLY
+      partialize: (state) => ({ user: state.user }),
+    }
+  )
+);
