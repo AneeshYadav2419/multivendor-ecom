@@ -1,12 +1,12 @@
 import { Router } from "express";
-import * as productController from "../controllers/productController.js";
-import { protect, restrictTo, checkVendorApproval } from "../middlewares/authMiddleware.js";
-import { validate } from "../middlewares/validateMiddleware.js";
+import * as productController from "./product.controller.js";
+import { protect, restrictTo, checkVendorApproval } from "../../middlewares/authMiddleware.js";
+import { validate } from "../../middlewares/validateMiddleware.js";
 import {
   createProductSchema,
   updateProductSchema,
   productQuerySchema,
-} from "../validations/productValidation.js";
+} from "./product.validation.js";
 
 const router = Router();
 
@@ -22,17 +22,6 @@ const router = Router();
 router.get("/", validate(productQuerySchema), productController.getAllProducts);
 
 /**
- * @route   GET /api/products/:id
- * @desc    Get a single product by ID
- * @access  Public
- */
-router.get("/:id", productController.getProductById);
-
-// ─────────────────────────────────────────────────────────
-// Vendor Routes (Requires Authentication & Approval)
-// ─────────────────────────────────────────────────────────
-
-/**
  * @route   GET /api/products/vendor/me
  * @desc    Get all products for the logged-in vendor
  * @access  Private (Vendor Only + Approved)
@@ -44,6 +33,17 @@ router.get(
   checkVendorApproval,
   productController.getMyProducts
 );
+
+/**
+ * @route   GET /api/products/:id
+ * @desc    Get a single product by ID
+ * @access  Public
+ */
+router.get("/:id", productController.getProductById);
+
+// ─────────────────────────────────────────────────────────
+// Vendor Routes (Requires Authentication & Approval)
+// ─────────────────────────────────────────────────────────
 
 /**
  * @route   POST /api/products

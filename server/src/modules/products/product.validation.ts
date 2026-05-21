@@ -53,8 +53,8 @@ export const updateProductSchema = z.object({
  */
 export const productQuerySchema = z.object({
   query: z.object({
-    page: z.string().optional().transform((val) => (val ? parseInt(val) : 1)),
-    limit: z.string().optional().transform((val) => (val ? parseInt(val) : 10)),
+    page: z.string().optional().transform((val) => (val ? parseInt(val, 10) : 1)),
+    limit: z.string().optional().transform((val) => (val ? parseInt(val, 10) : 10)),
     search: z.string().optional(),
     minPrice: z.string().optional().transform((val) => (val ? parseFloat(val) : undefined)),
     maxPrice: z.string().optional().transform((val) => (val ? parseFloat(val) : undefined)),

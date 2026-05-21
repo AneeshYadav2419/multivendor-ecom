@@ -1,21 +1,20 @@
-import prisma from "../config/prismaClient.js";
-import { AppError } from "../middlewares/errorMiddleware.js";
+import { Prisma } from "@prisma/client";
+import prisma from "../../config/prismaClient.js";
+import { AppError } from "../../middlewares/errorMiddleware.js";
+import {
+  CreateProductDTO,
+  UpdateProductDTO,
+  ProductQueryDTO,
+  ProductListResult,
+} from "./product.dto.js";
 
-/**
- * Helper to generate a URL-friendly slug from a string.
- */
-const generateSlug = (text: string) => {
-  return text
+const generateSlug = (text: string): string =>
+  text
     .toLowerCase()
     .replace(/[^\w ]+/g, "")
     .replace(/ +/g, "-");
-};
 
-/**
- * Helper to get vendorId for a given userId.
- * Throws error if user is not a vendor.
- */
-const getVendorIdByUserId = async (userId: string) => {
+const getVendorIdByUserId = async (userId: string): Promise<string> => {
   const vendor = await prisma.vendor.findUnique({
     where: { userId },
     select: { id: true },
@@ -28,13 +27,20 @@ const getVendorIdByUserId = async (userId: string) => {
   return vendor.id;
 };
 
-/**
- * Create a new product.
- */
-export const createProductService = async (userId: string, data: any) => {
+const ensureUniqueSlug = async (baseSlug: string, excludeProductId?: string): Promise<string> => {
+  let slug = baseSlug;
+  const existingSlug = await prisma.product.findUnique({ where: { slug } });
+
+  if (existingSlug && existingSlug.id !== excludeProductId) {
+    slug = `${baseSlug}-${Date.now().toString().slice(-4)}`;
+  }
+
+  return slug;
+};
+
+export const createProduct = async (userId: string, data: CreateProductDTO) => {
   const vendorId = await getVendorIdByUserId(userId);
 
-  // Check if category exists
   const category = await prisma.category.findUnique({
     where: { id: data.categoryId },
   });
@@ -43,16 +49,17 @@ export const createProductService = async (userId: string, data: any) => {
     throw new AppError("Category not found.", 404, "CATEGORY_NOT_FOUND");
   }
 
-  // Generate and handle slug uniqueness
-  let slug = generateSlug(data.name);
-  const existingSlug = await prisma.product.findUnique({ where: { slug } });
-  if (existingSlug) {
-    slug = `${slug}-${Date.now().toString().slice(-4)}`;
-  }
+  const slug = await ensureUniqueSlug(generateSlug(data.name));
 
-  return await prisma.product.create({
+  return prisma.product.create({
     data: {
-      ...data,
+      name: data.name,
+      description: data.description,
+      price: data.price,
+      stock: data.stock,
+      categoryId: data.categoryId,
+      images: data.images,
+      isActive: data.isActive ?? true,
       slug,
       vendorId,
     },
@@ -62,44 +69,43 @@ export const createProductService = async (userId: string, data: any) => {
   });
 };
 
-/**
- * Update a product with ownership validation.
- */
-export const updateProductService = async (productId: string, userId: string, data: any) => {
+export const updateProduct = async (
+  productId: string,
+  userId: string,
+  data: UpdateProductDTO
+) => {
   const vendorId = await getVendorIdByUserId(userId);
 
-  const product = await prisma.product.findUnique({
+  const existing = await prisma.product.findUnique({
     where: { id: productId },
-    select: { vendorId: true },
+    select: { vendorId: true, name: true },
   });
 
-  if (!product) {
+  if (!existing) {
     throw new AppError("Product not found.", 404, "PRODUCT_NOT_FOUND");
   }
 
-  if (product.vendorId !== vendorId) {
+  if (existing.vendorId !== vendorId) {
     throw new AppError("You do not have permission to update this product.", 403, "FORBIDDEN");
   }
 
-  // Handle slug if name is updated
+  const updateData: Prisma.ProductUpdateInput = { ...data };
+
   if (data.name) {
-    data.slug = generateSlug(data.name);
-    const existingSlug = await prisma.product.findUnique({ where: { slug: data.slug } });
-    if (existingSlug && existingSlug.id !== productId) {
-      data.slug = `${data.slug}-${Date.now().toString().slice(-4)}`;
-    }
+    const baseSlug = generateSlug(data.name);
+    updateData.slug = await ensureUniqueSlug(baseSlug, productId);
   }
 
-  return await prisma.product.update({
+  return prisma.product.update({
     where: { id: productId },
-    data,
+    data: updateData,
+    include: {
+      category: { select: { name: true } },
+    },
   });
 };
 
-/**
- * Delete a product with ownership validation.
- */
-export const deleteProductService = async (productId: string, userId: string) => {
+export const deleteProduct = async (productId: string, userId: string): Promise<void> => {
   const vendorId = await getVendorIdByUserId(userId);
 
   const product = await prisma.product.findUnique({
@@ -120,10 +126,7 @@ export const deleteProductService = async (productId: string, userId: string) =>
   });
 };
 
-/**
- * Get single product by ID.
- */
-export const getProductByIdService = async (productId: string) => {
+export const getProductById = async (productId: string) => {
   const product = await prisma.product.findUnique({
     where: { id: productId },
     include: {
@@ -139,32 +142,23 @@ export const getProductByIdService = async (productId: string) => {
   return product;
 };
 
-/**
- * Get all products belonging to the logged-in vendor.
- */
-export const getVendorProductsService = async (userId: string) => {
+export const getVendorProducts = async (userId: string) => {
   const vendorId = await getVendorIdByUserId(userId);
 
-  return await prisma.product.findMany({
+  return prisma.product.findMany({
     where: { vendorId },
     orderBy: { createdAt: "desc" },
     include: { category: { select: { name: true } } },
   });
 };
 
-/**
- * Get all products with advanced filtering, search, and pagination.
- */
-export const getAllProductsService = async (filters: any) => {
-  const page = Number(filters.page) || 1;
-  const limit = Number(filters.limit) || 10;
+export const getAllProducts = async (filters: ProductQueryDTO): Promise<ProductListResult> => {
+  const page = filters.page ?? 1;
+  const limit = filters.limit ?? 10;
   const { search, minPrice, maxPrice, categoryId, sortBy } = filters;
-  
   const skip = (page - 1) * limit;
 
-
-  // Build where clause
-  const where: any = { isActive: true };
+  const where: Prisma.ProductWhereInput = { isActive: true };
 
   if (search) {
     where.OR = [
@@ -177,19 +171,21 @@ export const getAllProductsService = async (filters: any) => {
     where.categoryId = categoryId;
   }
 
-  if (minPrice || maxPrice) {
+  if (minPrice !== undefined || maxPrice !== undefined) {
     where.price = {};
-    if (minPrice) where.price.gte = minPrice;
-    if (maxPrice) where.price.lte = maxPrice;
+    if (minPrice !== undefined) {
+      where.price.gte = minPrice;
+    }
+    if (maxPrice !== undefined) {
+      where.price.lte = maxPrice;
+    }
   }
 
-  // Build sorting
-  let orderBy: any = { createdAt: "desc" };
+  let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: "desc" };
   if (sortBy === "price_asc") orderBy = { price: "asc" };
   if (sortBy === "price_desc") orderBy = { price: "desc" };
   if (sortBy === "oldest") orderBy = { createdAt: "asc" };
 
-  // Execute count and findMany in parallel for performance
   const [products, total] = await Promise.all([
     prisma.product.findMany({
       where,
