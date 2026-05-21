@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { LoginForm } from "@/features/auth/components/login-form";
 
 /**
@@ -13,7 +14,9 @@ export default function LoginPage() {
       <div className="absolute top-1/4 left-1/4 h-96 w-96 -translate-x-1/2 -translate-y-1/2 rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 h-[400px] w-[400px] translate-x-1/2 translate-y-1/2 rounded-full bg-fuchsia-500/10 blur-[150px] pointer-events-none" />
 
-      <LoginForm />
+      <Suspense fallback={null}>
+        <LoginForm />
+      </Suspense>
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Mail, Lock, Eye, EyeOff, ArrowRight, Loader2, Sparkles } from "lucide-react";
 
 import { useLoginMutation } from "../hooks/use-auth-mutations";
@@ -31,17 +31,22 @@ import {
 
 export const LoginForm: React.FC = () => {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTo = searchParams.get("redirect");
   const [showPassword, setShowPassword] = useState(false);
 
-  // Initialize login mutation with local role-based redirections
   const { mutate: login, isPending } = useLoginMutation({
     onSuccess: (user) => {
+      if (redirectTo && user.role === "CUSTOMER") {
+        router.push(redirectTo);
+        return;
+      }
       if (user.role === "ADMIN") {
         router.push("/admin");
       } else if (user.role === "VENDOR") {
         router.push("/vendor/dashboard");
       } else {
-        router.push("/");
+        router.push("/products");
       }
     },
   });
