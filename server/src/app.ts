@@ -5,8 +5,9 @@ import morgan from "morgan";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
+import { traceMiddleware } from "./middlewares/traceMiddleware.js";
 import { errorHandler } from "./middlewares/errorMiddleware.js";
-import authRoutes from "./routes/authRoutes.js";
+import authRoutes from "./modules/auth/auth.routes.js";
 import vendorRoutes from "./routes/vendorRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
@@ -17,6 +18,9 @@ import webhookRoutes from "./routes/webhookRoutes.js";
 
 
 const app = express();
+
+// Trace correlation ID wrapper (MUST BE FIRST)
+app.use(traceMiddleware);
 
 // Security Middleware
 app.use(helmet());

@@ -48,6 +48,7 @@ model User {
   orders    Order[]
   reviews   Review[]
   cart      Cart?
+  usedTokens UsedRefreshToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -214,4 +215,16 @@ model CartItem {
   updatedAt DateTime @updatedAt
 
   @@unique([cartId, productId])
+}
+
+model UsedRefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([tokenHash])
+  @@index([userId])
 }
