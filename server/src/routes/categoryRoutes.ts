@@ -1,7 +1,7 @@
 import { Router } from "express";
 import * as categoryController from "../controllers/categoryController.js";
-import { protect, restrictTo } from "../middlewares/authMiddleware.js";
-import { validate } from "../middlewares/validateMiddleware.js";
+import { protect, restrictTo } from "../common/middlewares/authMiddleware.js";
+import { validate } from "../common/middlewares/validateMiddleware.js";
 import {
   createCategorySchema,
   updateCategorySchema,

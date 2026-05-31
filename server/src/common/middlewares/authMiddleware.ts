@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import prisma from "../config/prismaClient.js";
-import { env } from "../config/env.js";
+import prisma from "../../config/prismaClient.js";
+import { env } from "../../config/env.js";
 import { AppError } from "./errorMiddleware.js";
-import { cache } from "../config/redis.js";
-import { logger } from "../utils/logger.js";
+import { cache } from "../../config/redis.js";
+import { logger } from "../../utils/logger.js";
 
 const JWT_ACCESS_SECRET = env.JWT_SECRET;
 

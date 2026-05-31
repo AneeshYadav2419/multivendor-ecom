@@ -5,8 +5,8 @@ import morgan from "morgan";
 import compression from "compression";
 import rateLimit from "express-rate-limit";
 import cookieParser from "cookie-parser";
-import { traceMiddleware } from "./middlewares/traceMiddleware.js";
-import { errorHandler } from "./middlewares/errorMiddleware.js";
+import { traceMiddleware } from "./common/middlewares/traceMiddleware.js";
+import { errorHandler } from "./common/middlewares/errorMiddleware.js";
 import webhookRoutes from "./routes/webhookRoutes.js";
 import { registerRoutes } from "./routes/index.js";
 
@@ -53,7 +53,7 @@ registerRoutes(app);
 
 
 
-// Health Check
+// Health Check of the server 
 app.get("/health", (req, res) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
 });

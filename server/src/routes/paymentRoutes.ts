@@ -2,9 +2,9 @@ import { Router } from "express";
 
 import * as paymentController from "../controllers/paymentController.js";
 
-import { protect, restrictTo } from "../middlewares/authMiddleware.js";
+import { protect, restrictTo } from "../common/middlewares/authMiddleware.js";
 
-import { validate } from "../middlewares/validateMiddleware.js";
+import { validate } from "../common/middlewares/validateMiddleware.js";
 
 import {
     createPaymentOrderSchema,

@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import prisma from "../config/prismaClient.js";
 import razorpay from "../config/razorpay.js";
-import { AppError } from "../middlewares/errorMiddleware.js";
+import { AppError } from "../common/middlewares/errorMiddleware.js";
 
 /**
  * CREATE PAYMENT ORDER SERVICE

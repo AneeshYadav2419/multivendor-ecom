@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../../config/prismaClient.js";
-import { AppError } from "../../middlewares/errorMiddleware.js";
+import { AppError } from "../../common/middlewares/errorMiddleware.js";
 import {
   CreateProductDTO,
   UpdateProductDTO,

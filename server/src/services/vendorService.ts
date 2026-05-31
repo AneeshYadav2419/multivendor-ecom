@@ -1,6 +1,6 @@
 import { VendorStatus } from "@prisma/client";
 import prisma from "../config/prismaClient.js";
-import { AppError } from "../middlewares/errorMiddleware.js";
+import { AppError } from "../common/middlewares/errorMiddleware.js";
 
 /**
  * Fetch a vendor profile by the user ID.

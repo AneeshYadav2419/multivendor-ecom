@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import crypto from "crypto";
-import { requestContextStore } from "../utils/context.js";
+import { requestContextStore } from "../../utils/context.js";
 
 /**
  * Middleware to track request correlation IDs for logging and debugging.

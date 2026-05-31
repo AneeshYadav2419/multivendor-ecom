@@ -3,8 +3,8 @@
 import { Router } from "express";
 import * as orderController from "../controllers/orderController.js";
 
-import { protect, restrictTo } from "../middlewares/authMiddleware.js";
-import { validate } from "../middlewares/validateMiddleware.js";
+import { protect, restrictTo } from "../common/middlewares/authMiddleware.js";
+import { validate } from "../common/middlewares/validateMiddleware.js";
 import { placeOrderSchema } from "../validations/orderValidation.js";
 
 const router = Router();

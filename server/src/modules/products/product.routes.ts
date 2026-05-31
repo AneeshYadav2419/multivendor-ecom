@@ -1,7 +1,7 @@
 import { Router } from "express";
 import * as productController from "./product.controller.js";
-import { protect, restrictTo, checkVendorApproval } from "../../middlewares/authMiddleware.js";
-import { validate } from "../../middlewares/validateMiddleware.js";
+import { protect, restrictTo, checkVendorApproval } from "../../common/middlewares/authMiddleware.js";
+import { validate } from "../../common/middlewares/validateMiddleware.js";
 import {
   createProductSchema,
   updateProductSchema,

@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import prisma from "../../config/prismaClient.js";
 import { env } from "../../config/env.js";
-import { AppError } from "../../middlewares/errorMiddleware.js";
+import { AppError } from "../../common/middlewares/errorMiddleware.js";
 import { RegisterDTO, LoginDTO, TokenPair } from "./auth.dto.js";
 import { Role } from "@prisma/client";
 import { logger } from "../../utils/logger.js";

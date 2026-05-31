@@ -1,17 +1,18 @@
 import { Router } from "express";
 import {
-  getMyProfile,
-  updateMyProfile,
-  getVendorsByStatus,
-  updateVendorStatus,
-} from "../controllers/vendorController.js";
+    getMyProfile,
+    updateMyProfile,
+    getVendorsByStatus,
+    updateVendorStatus,
+    getAllVendors,
+} from "./vendor.controller.js";
 
-import { protect, restrictTo } from "../middlewares/authMiddleware.js";
-import { validate } from "../middlewares/validateMiddleware.js";
+import { protect, restrictTo } from "../../common/middlewares/authMiddleware.js";
+import { validate } from "../../common/middlewares/validateMiddleware.js";
 import {
-  updateVendorProfileSchema,
-  updateVendorStatusSchema,
-} from "../validations/vendorValidation.js";
+    updateVendorProfileSchema,
+    updateVendorStatusSchema,
+} from "./vendor.validation.js";
 
 const router = Router();
 
@@ -25,10 +26,10 @@ const router = Router();
  * @access  Private (Vendor)
  */
 router.get(
-  "/me",
-  protect,
-  restrictTo("VENDOR"),
-  getMyProfile
+    "/me",
+    protect,
+    restrictTo("VENDOR"),
+    getMyProfile
 );
 
 /**
@@ -37,11 +38,11 @@ router.get(
  * @access  Private (Vendor)
  */
 router.patch(
-  "/me",
-  protect,
-  restrictTo("VENDOR"),
-  validate(updateVendorProfileSchema),
-  updateMyProfile
+    "/me",
+    protect,
+    restrictTo("VENDOR"),
+    validate(updateVendorProfileSchema),
+    updateMyProfile
 );
 
 // ─────────────────────────────────────────────────────────
@@ -54,10 +55,10 @@ router.patch(
  * @access  Private (Admin)
  */
 router.get(
-  "/",
-  protect,
-  restrictTo("ADMIN"),
-  getVendorsByStatus
+    "/",
+    protect,
+    restrictTo("ADMIN"),
+    getVendorsByStatus
 );
 
 /**
@@ -66,11 +67,11 @@ router.get(
  * @access  Private (Admin)
  */
 router.patch(
-  "/:vendorId/status",
-  protect,
-  restrictTo("ADMIN"),
-  validate(updateVendorStatusSchema),
-  updateVendorStatus
+    "/:vendorId/status",
+    protect,
+    restrictTo("ADMIN"),
+    validate(updateVendorStatusSchema),
+    updateVendorStatus
 );
 
 export default router;

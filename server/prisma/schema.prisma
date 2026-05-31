@@ -21,6 +21,13 @@ enum OrderStatus {
   CANCELLED
 }
 
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  OUT_OF_STOCK
+  ARCHIVED
+}
+
 enum VendorStatus {
   PENDING
   APPROVED
@@ -57,18 +64,33 @@ model User {
 }
 
 model Vendor {
-  id          String       @id @default(cuid())
-  storeName   String
-  description String?
-  status      VendorStatus @default(PENDING)
-  
-  userId      String       @unique
-  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  products    Product[]
+  id            String       @id @default(cuid())
 
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+  storeName     String
+  description   String?
+
+  phone         String?
+  address       String?
+  city          String?
+  state         String?
+  pincode       String?
+
+  logo          String?
+  banner        String?
+
+  gstNumber     String?
+
+  isVerified    Boolean      @default(false)
+
+  status        VendorStatus @default(PENDING)
+
+  userId        String       @unique
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  products      Product[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 
@@ -104,7 +126,7 @@ model Product {
   price       Decimal     @db.Decimal(10, 2)
   stock       Int         @default(0)
   images      String[]
-  isActive    Boolean     @default(true)
+  status ProductStatus    @default(DRAFT)
 
   vendorId    String
   vendor      Vendor      @relation(fields: [vendorId], references: [id], onDelete: Cascade)

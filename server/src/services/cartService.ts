@@ -1,5 +1,5 @@
 import prisma from "../config/prismaClient.js";
-import { AppError } from "../middlewares/errorMiddleware.js";
+import { AppError } from "../common/middlewares/errorMiddleware.js";
 
 /**
  * Add an item to the cart or update quantity if it already exists.
