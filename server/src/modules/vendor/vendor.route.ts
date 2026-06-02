@@ -5,6 +5,7 @@ import {
     getVendorsByStatus,
     updateVendorStatus,
     getAllVendors,
+    getDashboard
 } from "./vendor.controller.js";
 
 import { protect, restrictTo } from "../../common/middlewares/authMiddleware.js";
@@ -15,6 +16,16 @@ import {
 } from "./vendor.validation.js";
 
 const router = Router();
+
+
+router.get(
+    "/dashboard",
+    protect,
+    restrictTo("VENDOR"),
+    getDashboard
+);
+
+
 
 // ─────────────────────────────────────────────────────────
 // Vendor Routes (Self-management)
@@ -74,4 +85,4 @@ router.patch(
     updateVendorStatus
 );
 
-export default router;
+export default router

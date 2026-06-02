@@ -9,10 +9,9 @@ import { asyncHandler } from "../../common/middlewares/asyncHandler.js";
  */
 export const getMyProfile = asyncHandler(
     async (req: Request, res: Response) => {
-        const profile =
-            await vendorService.getVendorProfileService(
-                req.user!.userId
-            );
+        const profile = await vendorService.getVendorProfileService(
+            req.user!.userId
+        );
 
         res.status(200).json({
             success: true,
@@ -68,19 +67,14 @@ export const updateVendorStatus = asyncHandler(
     async (req: Request, res: Response) => {
         const vendorId = req.params.vendorId as string;
 
-        const {
-            status,
-            reason,
-        }: {
+        const { status }: {
             status: VendorStatus;
-            reason?: string;
         } = req.body;
 
         const vendor =
             await vendorService.updateVendorStatusService(
                 vendorId,
-                status,
-                reason
+                status
             );
 
         res.status(200).json({
@@ -103,6 +97,19 @@ export const getAllVendors = asyncHandler(
             success: true,
             results: vendors.length,
             data: vendors,
+        });
+    }
+);
+
+export const getDashboard = asyncHandler(
+    async (req: Request, res: Response) => {
+        console.log("VENDOR SERVICE =", vendorService);
+        console.log("VENDOR SERVICE KEYS =", Object.keys(vendorService));
+        const stats = await vendorService.getDashboardStats(req.user!.userId);
+
+        res.status(200).json({
+            success: true,
+            data: stats,
         });
     }
 );

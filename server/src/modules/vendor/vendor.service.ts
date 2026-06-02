@@ -1,71 +1,132 @@
 import { VendorStatus } from "@prisma/client";
+
 import * as vendorRepository from "./vendor.repository.js";
-import { AppError } from "../../common/middlewares/errorMiddleware.js";
+import prisma from "../../config/prismaClient.js";
 
-/**
- * Fetch a vendor profile by the user ID.
- * Used by vendors to see their own data.
- */
-export const getVendorProfileService = async (userId: string) => {
-    const vendor = await vendorRepository.findVendorByUserId(userId);
+console.log("🔥 VENDOR SERVICE FILE LOADED");
+
+
+export const getVendorProfileService =
+    async (userId: string) => {
+
+        const vendor =
+            await vendorRepository.findVendorByUserId(
+                userId
+            );
+
+        if (!vendor) {
+            throw new Error(
+                "Vendor profile not found"
+            );
+        }
+
+        return vendor;
+    };
+
+export const updateVendorProfileService =
+    async (
+        userId: string,
+        payload: any
+    ) => {
+
+        const vendor =
+            await vendorRepository.findVendorByUserId(
+                userId
+            );
+
+        if (!vendor) {
+            throw new Error(
+                "Vendor profile not found"
+            );
+        }
+
+        return vendorRepository.updateVendorProfile(
+            userId,
+            payload
+        );
+    };
+
+export const getAllVendorsService =
+    async () => {
+
+        return vendorRepository.getAllVendors();
+    };
+
+export const getVendorsByStatusService =
+    async (
+        status: VendorStatus
+    ) => {
+
+        return vendorRepository.getVendorsByStatus(
+            status
+        );
+    };
+
+export const updateVendorStatusService =
+    async (
+        vendorId: string,
+        status: VendorStatus
+    ) => {
+
+        const vendor =
+            await vendorRepository.findVendorById(
+                vendorId
+            );
+
+        if (!vendor) {
+            throw new Error(
+                "Vendor not found"
+            );
+        }
+
+        return vendorRepository.updateVendorStatus(
+            vendorId,
+            status
+        );
+    };
+
+
+export const getDashboardStats = async (userId: string) => {
+    const vendor = await prisma.vendor.findUnique({
+        where: { userId },
+    });
 
     if (!vendor) {
-        throw new AppError("Vendor profile not found", 404, "VENDOR_NOT_FOUND");
+        throw new Error("Vendor not found");
     }
 
-    return vendor;
-};
+    const [
+        totalProducts,
+        activeProducts,
+        lowStockProducts
+    ] = await Promise.all([
+        prisma.product.count({
+            where: {
+                vendorId: vendor.id,
+            },
+        }),
 
-/**
- * Update vendor profile details.
- * Allows changing store name and description.
- */
-export const updateVendorProfileService = async (
-    userId: string,
-    payload: { storeName?: string; description?: string }
-) => {
-    const vendor = await vendorRepository.findVendorByUserId(userId);
+        prisma.product.count({
+            where: {
+                vendorId: vendor.id,
+                status: "ACTIVE",
+            },
+        }),
 
-    if (!vendor) {
-        throw new AppError("Vendor profile not found", 404, "VENDOR_NOT_FOUND");
-    }
+        prisma.product.count({
+            where: {
+                vendorId: vendor.id,
+                stock: {
+                    lte: 5,
+                },
+            },
+        }),
+    ]);
+    console.log("VENDOR SERVICE FILE LOADED");
 
-    return vendorRepository.updateVendorProfile(userId, payload);
-};
-
-/**
- * Get all vendors for admin dashboard.
- */
-export const getAllVendorsService = async () => {
-    return vendorRepository.getAllVendors();
-};
-
-/**
- * Get all vendors with a specific status.
- * Primarily used by Admin to find PENDING applications.
- */
-export const getVendorsByStatusService = async (status: VendorStatus) => {
-    return vendorRepository.getVendorsByStatus(status);
-};
-
-/**
- * Update a vendor's status (APPROVE, REJECT, SUSPEND).
- * Only accessible by ADMIN.
- */
-export const updateVendorStatusService = async (
-    vendorId: string,
-    status: VendorStatus,
-    reason?: string
-) => {
-    const vendor = await vendorRepository.findVendorById(vendorId);
-
-    if (!vendor) {
-        throw new AppError("Vendor not found", 404, "VENDOR_NOT_FOUND");
-    }
-
-    if (vendor.status === status) {
-        throw new AppError(`Vendor is already ${status}`, 400, "BAD_REQUEST");
-    }
-
-    return vendorRepository.updateVendorStatus(vendorId, status);
+    return {
+        totalProducts,
+        activeProducts,
+        lowStockProducts,
+    };
 };
