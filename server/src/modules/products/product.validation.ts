@@ -28,7 +28,7 @@ export const createProductSchema = z.object({
         message: "Images must be an array of URLs",
       })
       .min(1, "At least one image is required"),
-    isActive: z.boolean().optional().default(true),
+    status: z.enum(["DRAFT", "ACTIVE", "OUT_OF_STOCK", "ARCHIVED"]).optional(),
   }),
 });
 
@@ -44,7 +44,7 @@ export const updateProductSchema = z.object({
     stock: z.number().int().nonnegative().optional(),
     categoryId: z.string().cuid().optional(),
     images: z.array(z.string().url()).min(1).optional(),
-    isActive: z.boolean().optional(),
+    status: z.enum(["DRAFT", "ACTIVE", "OUT_OF_STOCK", "ARCHIVED"]).optional(),
   }),
 });
 

@@ -40,7 +40,7 @@ export const placeOrderService = async (
     for (const item of cart.items) {
 
         // Product inactive
-        if (!item.product.isActive) {
+        if (item.product.status !== "ACTIVE") {
             throw new AppError(
                 `${item.product.name} is unavailable.`,
                 400,

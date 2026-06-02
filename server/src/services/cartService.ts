@@ -8,10 +8,10 @@ export const addToCartService = async (userId: string, productId: string, quanti
   // 1. Validate Product & Stock
   const product = await prisma.product.findUnique({
     where: { id: productId },
-    select: { id: true, stock: true, isActive: true },
+    select: { id: true, stock: true, status: true },
   });
 
-  if (!product || !product.isActive) {
+  if (!product || product.status !== "ACTIVE") {
     throw new AppError("Product not found or unavailable", 404, "PRODUCT_NOT_FOUND");
   }
 

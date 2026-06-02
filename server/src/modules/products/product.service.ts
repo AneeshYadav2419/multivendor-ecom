@@ -59,7 +59,7 @@ export const createProduct = async (userId: string, data: CreateProductDTO) => {
       stock: data.stock,
       categoryId: data.categoryId,
       images: data.images,
-      isActive: data.isActive ?? true,
+      status: data.status,
       slug,
       vendorId,
     },
@@ -158,7 +158,7 @@ export const getAllProducts = async (filters: ProductQueryDTO): Promise<ProductL
   const { search, minPrice, maxPrice, categoryId, sortBy } = filters;
   const skip = (page - 1) * limit;
 
-  const where: Prisma.ProductWhereInput = { isActive: true };
+  const where: Prisma.ProductWhereInput = { status: "ACTIVE" };
 
   if (search) {
     where.OR = [

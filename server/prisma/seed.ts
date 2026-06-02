@@ -211,7 +211,7 @@ async function main() {
         price: item.price,
         stock: item.stock,
         images: item.images,
-        isActive: true,
+        status: "ACTIVE",
         categoryId,
         vendorId: vendor.id,
       },
@@ -222,14 +222,14 @@ async function main() {
         price: item.price,
         stock: item.stock,
         images: item.images,
-        isActive: true,
+        status: "ACTIVE",
         categoryId,
         vendorId: vendor.id,
       },
     });
   }
 
-  const productCount = await prisma.product.count({ where: { isActive: true } });
+  const productCount = await prisma.product.count({ where: { status: "ACTIVE" } });
 
   console.log("✅ Seed complete!");
   console.log(`   Products in catalog: ${productCount}`);

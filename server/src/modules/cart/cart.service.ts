@@ -70,7 +70,7 @@ export const addToCart = async (
         );
     }
 
-    if (!product.isActive) {
+    if (product.status !== "ACTIVE") {
         throw new AppError(
             "Product is not available",
             400,
