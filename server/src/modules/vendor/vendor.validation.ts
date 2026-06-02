@@ -2,54 +2,84 @@ import { z } from "zod";
 import { VendorStatus } from "@prisma/client";
 
 /**
- * Validation for updating vendor profile.
- * Used by vendors to change their store details.
+ * Vendor Profile Update Validation
  */
 export const updateVendorProfileSchema = z.object({
-    body: z.object({
-        storeName: z
-            .string({ message: "Store name is required" })
-            .min(3, "Store name must be at least 3 characters")
-            .max(50, "Store name cannot exceed 50 characters")
-            .trim()
-            .optional(),
-        description: z
-            .string()
-            .max(500, "Description cannot exceed 500 characters")
-            .trim()
-            .optional(),
-    }),
+  body: z.object({
+    storeName: z
+      .string()
+      .min(3, "Store name must be at least 3 characters")
+      .max(50, "Store name cannot exceed 50 characters")
+      .trim()
+      .optional(),
+
+    description: z
+      .string()
+      .max(500, "Description cannot exceed 500 characters")
+      .trim()
+      .optional(),
+
+    phone: z
+      .string()
+      .min(10, "Phone number must be at least 10 digits")
+      .max(15, "Phone number cannot exceed 15 digits")
+      .optional(),
+
+    address: z
+      .string()
+      .max(255, "Address cannot exceed 255 characters")
+      .optional(),
+
+    city: z
+      .string()
+      .max(100, "City cannot exceed 100 characters")
+      .optional(),
+
+    state: z
+      .string()
+      .max(100, "State cannot exceed 100 characters")
+      .optional(),
+
+    pincode: z
+      .string()
+      .min(4, "Invalid pincode")
+      .max(10, "Invalid pincode")
+      .optional(),
+
+    logo: z
+      .string()
+      .url("Logo must be a valid URL")
+      .optional(),
+
+    banner: z
+      .string()
+      .url("Banner must be a valid URL")
+      .optional(),
+  }),
 });
 
 /**
- * Validation for admin updating vendor status.
- * Ensures the status is valid and a reason is provided if rejected/suspended.
+ * Admin Update Vendor Status
  */
 export const updateVendorStatusSchema = z.object({
-    params: z.object({
-        vendorId: z.string({ message: "Vendor ID is required" }).cuid("Invalid Vendor ID format"),
-    }),
-    body: z.object({
-        status: z.nativeEnum(VendorStatus, {
-            message: "Status must be PENDING, APPROVED, REJECTED, or SUSPENDED",
-        }),
-        reason: z.string().max(255, "Reason cannot exceed 255 characters").optional(),
-    }).refine((data) => {
-        if ((data.status === VendorStatus.REJECTED || data.status === VendorStatus.SUSPENDED) && !data.reason) {
-            return false;
-        }
-        return true;
-    }, {
-        message: "A reason is required when rejecting or suspending a vendor",
-        path: ["reason"],
-    }),
+  params: z.object({
+    vendorId: z
+      .string()
+      .cuid("Invalid Vendor ID format"),
+  }),
+
+  body: z.object({
+    status: z.nativeEnum(VendorStatus),
+  }),
 });
 
 /**
- * Validation for routes that only require a vendorId param.
+ * Vendor ID Param Validation
  */
 export const vendorIdParamSchema = z.object({
-    params: z.object({
-        vendorId: z.string({ message: "Vendor ID is required" }).cuid("Invalid Vendor ID format"),
-    }),
+  params: z.object({
+    vendorId: z
+      .string()
+      .cuid("Invalid Vendor ID format"),
+  }),
 });

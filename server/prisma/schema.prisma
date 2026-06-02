@@ -68,7 +68,7 @@ model Vendor {
 
   storeName     String
   description   String?
-
+  rejectionReason  String? 
   phone         String?
   address       String?
   city          String?
@@ -83,6 +83,7 @@ model Vendor {
   isVerified    Boolean      @default(false)
 
   status        VendorStatus @default(PENDING)
+  profileCompleted Boolean @default(false)
 
   userId        String       @unique
   user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -126,7 +127,7 @@ model Product {
   price       Decimal     @db.Decimal(10, 2)
   stock       Int         @default(0)
   images      String[]
-  status ProductStatus    @default(DRAFT)
+  status      ProductStatus @default(DRAFT)
 
   vendorId    String
   vendor      Vendor      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
@@ -164,7 +165,16 @@ model Order {
   razorpayOrderId   String?
   razorpayPaymentId String?
 
-  shippingAddress   String
+  shippingName    String
+  shippingPhone   String
+
+  addressLine1    String
+  addressLine2    String?
+
+city            String
+state           String
+pincode         String
+country         String
 
   paymentMethod     PaymentMethod @default(COD)
 

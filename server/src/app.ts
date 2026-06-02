@@ -11,6 +11,7 @@ import webhookRoutes from "./routes/webhookRoutes.js";
 import { registerRoutes } from "./routes/index.js";
 
 
+
 const app = express();
 
 // Trace correlation ID wrapper (MUST BE FIRST)
@@ -47,6 +48,8 @@ app.use("/api/webhooks", webhookRoutes);
 app.use(express.json({ limit: "10kb" })); // Body limit for security
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
 app.use(cookieParser());
+
+
 
 // API routes (see routes/index.ts for full registry)
 registerRoutes(app);

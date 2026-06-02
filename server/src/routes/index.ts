@@ -6,6 +6,10 @@ import categoryRoutes from "./categoryRoutes.js";
 import cartRoutes from "./cartRoutes.js";
 import orderRoutes from "./orderRoutes.js";
 import paymentRoutes from "./paymentRoutes.js";
+import adminRoutes from "../modules/admin/admin.routes.js";
+import adminVendorRoutes from "../modules/admin/admin.routes.js";
+
+
 
 /**
  * Central route registry — single place to see all API mounts.
@@ -19,4 +23,6 @@ export const registerRoutes = (app: Express): void => {
   app.use("/api/cart", cartRoutes);
   app.use("/api/orders", orderRoutes);
   app.use("/api/payments", paymentRoutes);
+  app.use("/api/admin", adminRoutes);
+  app.use("/api/admin/vendors", adminVendorRoutes);
 };
