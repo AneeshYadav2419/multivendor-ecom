@@ -9,6 +9,7 @@ import {
     suspendVendor,
     updateVendorStatus,
 } from "@/lib/api/admin";
+import { toast } from "sonner";
 import type { AdminVendorListResponse } from "@/features/admin/types";
 
 export const useAdminVendors = (status?: string) => {
@@ -30,6 +31,8 @@ export const useAdminVendors = (status?: string) => {
     const approveVendorMutation = useMutation({
         mutationFn: (id: string) => approveVendor(id),
         onSuccess: () => {
+            toast.success("Vendor Approved");
+
             // Invalidate vendor lists and dashboard counts
             queryClient.invalidateQueries({ queryKey: ["admin", "vendors"] });
             queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
@@ -41,6 +44,8 @@ export const useAdminVendors = (status?: string) => {
         mutationFn: ({ id, reason }: { id: string; reason?: string }) =>
             rejectVendor(id, reason),
         onSuccess: () => {
+            toast.success("Vendor Rejected");
+
             queryClient.invalidateQueries({ queryKey: ["admin", "vendors"] });
             queryClient.invalidateQueries({ queryKey: ["admin", "dashboard"] });
         },
@@ -50,6 +55,7 @@ export const useAdminVendors = (status?: string) => {
     const suspendVendorMutation = useMutation({
         mutationFn: (id: string) => suspendVendor(id),
         onSuccess: () => {
+            toast.success("Vendor Suspended");
             queryClient.invalidateQueries({ queryKey: ["admin", "vendors"] });
         },
     });

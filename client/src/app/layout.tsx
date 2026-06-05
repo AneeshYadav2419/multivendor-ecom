@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import "./globals.css";
 
+
 import QueryProvider from "@/providers/query-provider";
 import { AuthHydrationProvider } from "@/providers/auth-hydration-provider";
 
