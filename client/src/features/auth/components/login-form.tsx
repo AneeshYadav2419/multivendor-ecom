@@ -42,7 +42,7 @@ export const LoginForm: React.FC = () => {
         return;
       }
       if (user.role === "ADMIN") {
-        router.push("/admin");
+        router.push("/admin/dashboard");
       } else if (user.role === "VENDOR") {
         router.push("/vendor/dashboard");
       } else {
