@@ -8,6 +8,8 @@ import orderRoutes from "./orderRoutes.js";
 import paymentRoutes from "./paymentRoutes.js";
 import adminRoutes from "../modules/admin/admin.routes.js";
 import adminVendorRoutes from "../modules/admin/admin.routes.js";
+import adminProductRoutes
+  from "../modules/admin/adminProduct.routes.js";
 
 
 
@@ -25,4 +27,6 @@ export const registerRoutes = (app: Express): void => {
   app.use("/api/payments", paymentRoutes);
   app.use("/api/admin", adminRoutes);
   app.use("/api/admin/vendors", adminVendorRoutes);
+  app.use("/api/admin/products", adminProductRoutes);
+
 };

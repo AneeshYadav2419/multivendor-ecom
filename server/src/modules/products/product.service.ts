@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 import prisma from "../../config/prismaClient.js";
 import { AppError } from "../../common/middlewares/errorMiddleware.js";
+import { ProductStatus } from "@prisma/client";
 import {
   CreateProductDTO,
   UpdateProductDTO,
@@ -59,7 +60,7 @@ export const createProduct = async (userId: string, data: CreateProductDTO) => {
       stock: data.stock,
       categoryId: data.categoryId,
       images: data.images,
-      status: data.status,
+      status: ProductStatus.DRAFT,
       slug,
       vendorId,
     },
@@ -158,7 +159,9 @@ export const getAllProducts = async (filters: ProductQueryDTO): Promise<ProductL
   const { search, minPrice, maxPrice, categoryId, sortBy } = filters;
   const skip = (page - 1) * limit;
 
-  const where: Prisma.ProductWhereInput = { status: "ACTIVE" };
+  const where: Prisma.ProductWhereInput = {
+    status: ProductStatus.ACTIVE,
+  };
 
   if (search) {
     where.OR = [

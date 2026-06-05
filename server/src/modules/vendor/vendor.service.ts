@@ -86,6 +86,50 @@ export const updateVendorStatusService =
     };
 
 
+// export const getDashboardStats = async (userId: string) => {
+//     const vendor = await prisma.vendor.findUnique({
+//         where: { userId },
+//     });
+
+//     if (!vendor) {
+//         throw new Error("Vendor not found");
+//     }
+
+//     const [
+//         totalProducts,
+//         activeProducts,
+//         lowStockProducts
+//     ] = await Promise.all([
+//         prisma.product.count({
+//             where: {
+//                 vendorId: vendor.id,
+//             },
+//         }),
+
+//         prisma.product.count({
+//             where: {
+//                 vendorId: vendor.id,
+//                 status: "ACTIVE",
+//             },
+//         }),
+
+//         prisma.product.count({
+//             where: {
+//                 vendorId: vendor.id,
+//                 stock: {
+//                     lte: 5,
+//                 },
+//             },
+//         }),
+//     ]);
+//     console.log("VENDOR SERVICE FILE LOADED");
+
+//     return {
+//         totalProducts,
+//         activeProducts,
+//         lowStockProducts,
+//     };
+// };
 export const getDashboardStats = async (userId: string) => {
     const vendor = await prisma.vendor.findUnique({
         where: { userId },
@@ -98,7 +142,9 @@ export const getDashboardStats = async (userId: string) => {
     const [
         totalProducts,
         activeProducts,
-        lowStockProducts
+        pendingProducts,
+        orderItems,
+        recentOrders,
     ] = await Promise.all([
         prisma.product.count({
             where: {
@@ -116,17 +162,61 @@ export const getDashboardStats = async (userId: string) => {
         prisma.product.count({
             where: {
                 vendorId: vendor.id,
-                stock: {
-                    lte: 5,
+                status: "DRAFT",
+            },
+        }),
+
+        prisma.orderItem.findMany({
+            where: {
+                product: {
+                    vendorId: vendor.id,
+                },
+            },
+            include: {
+                order: true,
+            },
+        }),
+
+        prisma.order.findMany({
+            where: {
+                orderItems: {
+                    some: {
+                        product: {
+                            vendorId: vendor.id,
+                        },
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+            take: 5,
+            include: {
+                customer: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
                 },
             },
         }),
     ]);
-    console.log("VENDOR SERVICE FILE LOADED");
+
+    const totalOrders = orderItems.length;
+
+    const revenue = orderItems.reduce(
+        (sum, item) =>
+            sum + Number(item.price) * item.quantity,
+        0
+    );
 
     return {
         totalProducts,
         activeProducts,
-        lowStockProducts,
+        pendingProducts,
+        totalOrders,
+        revenue,
+        recentOrders,
     };
 };
