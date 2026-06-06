@@ -2,7 +2,7 @@ import type { Express } from "express";
 import authRoutes from "../modules/auth/auth.routes.js"
 import vendorRoutes from "../modules/vendor/vendor.route.js";
 import productRoutes from "../modules/products/product.routes.js";
-import categoryRoutes from "./categoryRoutes.js";
+import categoryRoutes from "../modules/category/categoryRoutes.js";
 import cartRoutes from "./cartRoutes.js";
 import orderRoutes from "./orderRoutes.js";
 import paymentRoutes from "./paymentRoutes.js";

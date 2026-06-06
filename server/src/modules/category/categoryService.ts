@@ -1,5 +1,5 @@
-import prisma from "../config/prismaClient.js";
-import { AppError } from "../common/middlewares/errorMiddleware.js";
+import prisma from "../../config/prismaClient.js";
+import { AppError } from "../../common/middlewares/errorMiddleware.js";
 
 /**
  * Helper to generate a URL-friendly slug.
@@ -61,7 +61,7 @@ export const updateCategoryService = async (id: string, data: { name?: string; d
     if (collision) {
       throw new AppError("Another category already has this name.", 409, "DUPLICATE_CATEGORY");
     }
-    
+
     (data as any).slug = slug;
   }
 

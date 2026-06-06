@@ -43,5 +43,11 @@ router.patch(
   adminController.suspendVendor
 );
 
+router.get(
+  "/users",
+  protect,
+  restrictTo("ADMIN"),
+  adminController.getAllUsers
+);
 
 export default router;

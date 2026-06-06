@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import prisma from "../../config/prismaClient.js";
 import { catchAsync } from "../../utils/catchAsync.js";
 import { AppError } from "../../common/middlewares/errorMiddleware.js";
@@ -100,3 +100,34 @@ export const suspendVendor = catchAsync(async (req: Request, res: Response) => {
     data: vendor,
   });
 });
+
+export const getAllUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const users = await prisma.user.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      results: users.length,
+      data: users,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
