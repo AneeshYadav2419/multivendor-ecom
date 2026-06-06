@@ -8,7 +8,7 @@ import {
     rejectVendor,
     suspendVendor,
     updateVendorStatus,
-} from "@/lib/api/admin";
+} from "@/lib/api/vendors.api";
 import { toast } from "sonner";
 import type { AdminVendorListResponse } from "@/features/admin/types";
 

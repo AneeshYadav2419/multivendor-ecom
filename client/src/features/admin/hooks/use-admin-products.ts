@@ -1,65 +1,19 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
+import { useQuery } from "@tanstack/react-query";
 import {
     getAdminProducts,
     getPendingProducts,
-    approveProduct,
-    rejectProduct,
-} from "@/lib/api/admin";
+} from "@/lib/api/products.api";
+import { getAdminProductById } from "@/lib/api/products.api";
 
-import { toast } from "sonner";
-
-export const useAdminProducts = () => {
-    const queryClient = useQueryClient();
-
+export const useAdminProducts = (params?: any) => {
     const productsQuery = useQuery({
-        queryKey: ["admin", "products"],
-        queryFn: getAdminProducts,
+        queryKey: ["admin", "products", params],
+        queryFn: () => getAdminProducts(params),
     });
 
     const pendingProductsQuery = useQuery({
         queryKey: ["admin", "products", "pending"],
         queryFn: getPendingProducts,
-    });
-
-    const approveMutation = useMutation({
-        mutationFn: (id: string) => approveProduct(id),
-
-        onSuccess: () => {
-            toast.success("Product approved");
-
-            queryClient.invalidateQueries({
-                queryKey: ["admin", "products"],
-            });
-
-            queryClient.invalidateQueries({
-                queryKey: ["admin", "products", "pending"],
-            });
-
-            queryClient.invalidateQueries({
-                queryKey: ["admin", "dashboard"],
-            });
-        },
-    });
-
-    const rejectMutation = useMutation({
-        mutationFn: (id: string) => rejectProduct(id),
-
-        onSuccess: () => {
-            toast.success("Product rejected");
-
-            queryClient.invalidateQueries({
-                queryKey: ["admin", "products"],
-            });
-
-            queryClient.invalidateQueries({
-                queryKey: ["admin", "products", "pending"],
-            });
-
-            queryClient.invalidateQueries({
-                queryKey: ["admin", "dashboard"],
-            });
-        },
     });
 
     return {
@@ -68,11 +22,15 @@ export const useAdminProducts = () => {
 
         isLoadingProducts: productsQuery.isLoading,
         isLoadingPending: pendingProductsQuery.isLoading,
-
-        approveProduct: approveMutation.mutateAsync,
-        rejectProduct: rejectMutation.mutateAsync,
-
-        isApproving: approveMutation.isPending,
-        isRejecting: rejectMutation.isPending,
     };
+};
+
+
+
+export const useAdminProduct = (id: string) => {
+    return useQuery({
+        queryKey: ["admin", "product", id],
+        queryFn: () => getAdminProductById(id),
+        enabled: !!id,
+    });
 };
