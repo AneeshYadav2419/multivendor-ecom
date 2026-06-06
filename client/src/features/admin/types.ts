@@ -151,3 +151,18 @@ export interface AdminDeleteResponse {
   success: boolean;
   message: string;
 }
+export interface AdminUser {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminUsersResponse {
+  success: boolean;
+  results: number;
+  data: AdminUser[];
+}
