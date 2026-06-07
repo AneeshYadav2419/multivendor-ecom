@@ -1,7 +1,7 @@
 
 import { Request, Response, NextFunction } from "express";
-import * as orderService from "../services/orderService.js";
-import { catchAsync } from "../utils/catchAsync.js";
+import * as orderService from "./orderService.js";
+import { catchAsync } from "../../utils/catchAsync.js";
 
 /**
  * PLACE ORDER

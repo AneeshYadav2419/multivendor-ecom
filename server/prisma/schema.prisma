@@ -4,7 +4,182 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  
+}
+
+model User {
+  id         String             @id @default(cuid())
+  name       String
+  email      String             @unique
+  password   String
+  role       Role               @default(CUSTOMER)
+  isActive   Boolean            @default(true)
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+  cart       Cart?
+  orders     Order[]
+  reviews    Review[]
+  sessions   Session[]
+  usedTokens UsedRefreshToken[]
+  vendor     Vendor?
+
+  @@index([email])
+}
+
+model Vendor {
+  id               String       @id @default(cuid())
+  storeName        String
+  description      String?
+  userId           String       @unique
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  status           VendorStatus @default(PENDING)
+  address          String?
+  banner           String?
+  city             String?
+  gstNumber        String?
+  isVerified       Boolean      @default(false)
+  logo             String?
+  phone            String?
+  pincode          String?
+  state            String?
+  profileCompleted Boolean      @default(false)
+  rejectionReason  String?
+  orderItems       OrderItem[]
+  products         Product[]
+  user             User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  refreshToken String   @unique
+  userId       String
+  createdAt    DateTime @default(now())
+  expiresAt    DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  products    Product[]
+}
+
+model Product {
+  id          String        @id @default(cuid())
+  name        String
+  slug        String        @unique
+  description String
+  price       Decimal       @db.Decimal(10, 2)
+  stock       Int           @default(0)
+  images      String[]
+  vendorId    String
+  categoryId  String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  status      ProductStatus @default(DRAFT)
+  cartItems   CartItem[]
+  orderItems  OrderItem[]
+  category    Category      @relation(fields: [categoryId], references: [id])
+  vendor      Vendor        @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  reviews     Review[]
+
+  @@index([vendorId])
+  @@index([categoryId])
+  @@index([slug])
+}
+
+model Order {
+  id                String        @id @default(cuid())
+  totalAmount       Decimal       @db.Decimal(10, 2)
+  status            OrderStatus   @default(PENDING)
+  customerId        String
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  paymentMethod     PaymentMethod @default(COD)
+  paymentStatus     PaymentStatus @default(PENDING)
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  addressLine1      String
+  addressLine2      String?
+  city              String
+  country           String
+  pincode           String
+  shippingName      String
+  shippingPhone     String
+  state             String
+  customer          User          @relation(fields: [customerId], references: [id])
+  orderItems        OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  quantity  Int
+  price     Decimal @db.Decimal(10, 2)
+  orderId   String
+  productId String
+  vendorId  String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product   Product @relation(fields: [productId], references: [id])
+  vendor    Vendor  @relation(fields: [vendorId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@index([vendorId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      @default(5)
+  comment   String?
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([productId])
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  quantity  Int      @default(1)
+  cartId    String
+  productId String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([cartId, productId])
+}
+
+model UsedRefreshToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tokenHash])
+  @@index([userId])
 }
 
 enum Role {
@@ -41,222 +216,8 @@ enum PaymentStatus {
   FAILED
 }
 
-
-model User {
-  id        String   @id @default(cuid())
-  name      String
-  email     String   @unique
-  password  String
-  role      Role     @default(CUSTOMER)
-  isActive  Boolean  @default(true)
-  
-  vendor    Vendor?
-  sessions  Session[]
-  orders    Order[]
-  reviews   Review[]
-  cart      Cart?
-  usedTokens UsedRefreshToken[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([email])
-}
-
-model Vendor {
-  id            String       @id @default(cuid())
-
-  storeName     String
-  description   String?
-  rejectionReason  String? 
-  phone         String?
-  address       String?
-  city          String?
-  state         String?
-  pincode       String?
-
-  logo          String?
-  banner        String?
-
-  gstNumber     String?
-
-  isVerified    Boolean      @default(false)
-
-  status        VendorStatus @default(PENDING)
-  profileCompleted Boolean @default(false)
-
-  userId        String       @unique
-  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  products      Product[]
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
-
-model Session {
-  id           String   @id @default(cuid())
-  refreshToken String   @unique
-  userId       String
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  createdAt    DateTime @default(now())
-  expiresAt    DateTime
-
-  @@index([userId])
-}
-
-model Category {
-  id          String    @id @default(cuid())
-  name        String    @unique
-  slug        String    @unique
-  description String?
-  
-  products    Product[]
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
-model Product {
-  id          String      @id @default(cuid())
-  name        String
-  slug        String      @unique
-  description String
-  price       Decimal     @db.Decimal(10, 2)
-  stock       Int         @default(0)
-  images      String[]
-  status      ProductStatus @default(DRAFT)
-
-  vendorId    String
-  vendor      Vendor      @relation(fields: [vendorId], references: [id], onDelete: Cascade)
-  
-  categoryId  String
-  category    Category    @relation(fields: [categoryId], references: [id])
-  
-  orderItems  OrderItem[]
-  reviews     Review[]
-  cartItems   CartItem[]
-
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  @@index([vendorId])
-  @@index([categoryId])
-  @@index([slug])
-}
-
 enum PaymentMethod {
   COD
   CARD
   UPI
-}
-
-model Order {
-  id                String         @id @default(cuid())
-
-  totalAmount       Decimal        @db.Decimal(10,2)
-
-  status            OrderStatus    @default(PENDING)
-
-  paymentStatus     PaymentStatus  @default(PENDING)
-
-  razorpayOrderId   String?
-  razorpayPaymentId String?
-
-  shippingName    String
-  shippingPhone   String
-
-  addressLine1    String
-  addressLine2    String?
-
-city            String
-state           String
-pincode         String
-country         String
-
-  paymentMethod     PaymentMethod @default(COD)
-
-  customerId        String
-
-  customer          User @relation(fields: [customerId], references: [id])
-
-  orderItems        OrderItem[]
-
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-}
-
-
-model OrderItem {
-  id        String   @id @default(cuid())
-  quantity  Int
-  price     Decimal  @db.Decimal(10, 2)
-
-  orderId   String
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  
-  productId String
-  product   Product  @relation(fields: [productId], references: [id])
-
-  @@index([orderId])
-  @@index([productId])
-}
-
-model Review {
-  id        String   @id @default(cuid())
-  rating    Int      @default(5)
-  comment   String?
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([userId])
-  @@index([productId])
-}
-
-model Cart {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  items     CartItem[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-model CartItem {
-  id        String   @id @default(cuid())
-  quantity  Int      @default(1)
-
-  cartId    String
-  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
-
-  productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([cartId, productId])
-}
-
-model UsedRefreshToken {
-  id        String   @id @default(cuid())
-  tokenHash String   @unique
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  expiresAt DateTime
-
-  @@index([tokenHash])
-  @@index([userId])
 }

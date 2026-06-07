@@ -4,12 +4,14 @@ import vendorRoutes from "../modules/vendor/vendor.route.js";
 import productRoutes from "../modules/products/product.routes.js";
 import categoryRoutes from "../modules/category/categoryRoutes.js";
 import cartRoutes from "./cartRoutes.js";
-import orderRoutes from "./orderRoutes.js";
+import orderRoutes from "../modules/order/orderRoutes.js";
 import paymentRoutes from "./paymentRoutes.js";
 import adminRoutes from "../modules/admin/admin.routes.js";
 import adminVendorRoutes from "../modules/admin/admin.routes.js";
 import adminProductRoutes
   from "../modules/admin/adminProduct.routes.js";
+import vendorOrderRoutes
+  from "../modules/orders/vendorOrder.route.js";
 
 
 
@@ -28,5 +30,9 @@ export const registerRoutes = (app: Express): void => {
   app.use("/api/admin", adminRoutes);
   app.use("/api/admin/vendors", adminVendorRoutes);
   app.use("/api/admin/products", adminProductRoutes);
+  app.use(
+    "/api/vendors/orders",
+    vendorOrderRoutes
+  );
 
 };

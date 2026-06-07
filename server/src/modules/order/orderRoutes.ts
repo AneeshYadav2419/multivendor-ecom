@@ -1,11 +1,11 @@
 // routes/orderRoutes.ts
 
 import { Router } from "express";
-import * as orderController from "../controllers/orderController.js";
+import * as orderController from "./orderController.js";
 
-import { protect, restrictTo } from "../common/middlewares/authMiddleware.js";
-import { validate } from "../common/middlewares/validateMiddleware.js";
-import { placeOrderSchema } from "../validations/orderValidation.js";
+import { protect, restrictTo } from "../../common/middlewares/authMiddleware.js";
+import { validate } from "../../common/middlewares/validateMiddleware.js";
+import { placeOrderSchema } from "./orderValidation.js";
 
 const router = Router();
 

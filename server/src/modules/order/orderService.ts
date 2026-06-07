@@ -1,7 +1,7 @@
 // services/orderService.ts
 
-import prisma from "../config/prismaClient.js";
-import { AppError } from "../common/middlewares/errorMiddleware.js";
+import prisma from "../../config/prismaClient.js";
+import { AppError } from "../../common/middlewares/errorMiddleware.js";
 import { PaymentMethod } from "@prisma/client";
 
 /**
@@ -75,6 +75,7 @@ export const placeOrderService = async (
                 orderItems: {
                     create: cart.items.map((item) => ({
                         productId: item.productId,
+                        vendorId: item.product.vendorId,
                         quantity: item.quantity,
                         price: item.product.price,
                     })),
