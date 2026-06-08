@@ -7,12 +7,12 @@ import { useRouter } from "next/navigation";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { 
-  ArrowLeft, 
-  Plus, 
-  Trash2, 
-  Loader2, 
-  AlertCircle, 
+import {
+  ArrowLeft,
+  Plus,
+  Trash2,
+  Loader2,
+  AlertCircle,
   Image as ImageIcon,
   Sparkles
 } from "lucide-react";
@@ -294,10 +294,10 @@ export default function CreateProduct() {
                   <CardTitle className="text-white text-base">Media Link</CardTitle>
                   <CardDescription className="text-slate-400">Provide product image URLs.</CardDescription>
                 </div>
-                <Button 
-                  type="button" 
-                  variant="ghost" 
-                  size="icon" 
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
                   className="h-8 w-8 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 rounded-lg"
                   onClick={handleAddDemoImage}
                   title="Insert a random demo image"
@@ -316,8 +316,8 @@ export default function CreateProduct() {
                       onChange={(e) => setImageInput(e.target.value)}
                       className="border-slate-800 bg-[#020617]/50 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 text-slate-200"
                     />
-                    <Button 
-                      type="button" 
+                    <Button
+                      type="button"
                       onClick={handleAddImage}
                       className="bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 px-3"
                     >
@@ -339,15 +339,15 @@ export default function CreateProduct() {
                       {imageFields.map((field, index) => {
                         const url = getValues(`images.${index}`);
                         return (
-                          <div 
-                            key={field.id} 
+                          <div
+                            key={field.id}
                             className="flex items-center gap-2 p-2 border border-slate-800/80 bg-slate-950/40 rounded-lg group"
                           >
                             <div className="h-8 w-8 rounded overflow-hidden bg-slate-900 shrink-0 border border-slate-850">
-                              <img 
-                                src={url} 
-                                alt={`Media ${index}`} 
-                                className="h-full w-full object-cover" 
+                              <img
+                                src={url}
+                                alt={`Media ${index}`}
+                                className="h-full w-full object-cover"
                                 onError={(e) => {
                                   (e.target as HTMLImageElement).style.display = "none";
                                 }}

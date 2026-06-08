@@ -51,14 +51,14 @@ export interface CategoryInput {
 }
 
 // Get All Categories
-export const getAdminCategories =
+export const getCategories =
   async (): Promise<CategoriesListResponse> => {
     const response = await api.get("/categories");
     return response.data;
   };
 
 // Get Single Category
-export const getAdminCategoryById = async (
+export const getCategoryById = async (
   id: string
 ): Promise<CategoryResponse> => {
   const response = await api.get(`/categories/${id}`);
