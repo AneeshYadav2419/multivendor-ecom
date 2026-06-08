@@ -11,12 +11,10 @@ export const placeOrder = catchAsync(async (
     res: Response,
     next: NextFunction
 ) => {
-    const { shippingAddress, paymentMethod } = req.body;
 
     const order = await orderService.placeOrderService(
         req.user!.userId,
-        shippingAddress,
-        paymentMethod
+        req.body
     );
 
     res.status(201).json({

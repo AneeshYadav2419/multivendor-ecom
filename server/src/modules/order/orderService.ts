@@ -2,16 +2,32 @@
 
 import prisma from "../../config/prismaClient.js";
 import { AppError } from "../../common/middlewares/errorMiddleware.js";
-import { PaymentMethod } from "@prisma/client";
+import type { PlaceOrderInput } from "./order.types.js";
 
 /**
  * PLACE ORDER SERVICE
+ * 
+ * 
  */
+
 export const placeOrderService = async (
     userId: string,
-    shippingAddress: string,
-    paymentMethod: PaymentMethod
+    data: PlaceOrderInput
 ) => {
+    const {
+        shippingName,
+        shippingPhone,
+
+        addressLine1,
+        addressLine2,
+
+        city,
+        state,
+        country,
+        pincode,
+
+        paymentMethod,
+    } = data;
     // 1. Get user's cart
     const cart = await prisma.cart.findUnique({
         where: { userId },
@@ -68,8 +84,20 @@ export const placeOrderService = async (
         const createdOrder = await tx.order.create({
             data: {
                 customerId: userId,
+
                 totalAmount,
-                shippingAddress,
+
+                shippingName,
+                shippingPhone,
+
+                addressLine1,
+                addressLine2,
+
+                city,
+                state,
+                country,
+                pincode,
+
                 paymentMethod,
 
                 orderItems: {
