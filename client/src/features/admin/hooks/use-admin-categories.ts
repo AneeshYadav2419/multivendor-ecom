@@ -2,10 +2,10 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { getAdminCategoryById } from "@/lib/api/categories";
+import { getCategoryById } from "@/lib/api/categories";
 
 import {
-    getAdminCategories,
+    getCategories,
     createCategory,
     updateCategory,
     deleteCategory,
@@ -16,7 +16,7 @@ export const useAdminCategories = () => {
 
     const categoriesQuery = useQuery({
         queryKey: ["admin", "categories"],
-        queryFn: getAdminCategories,
+        queryFn: getCategories,
     });
 
     const createMutation = useMutation({
@@ -77,7 +77,7 @@ export const useAdminCategories = () => {
 export const useAdminCategory = (id: string) => {
     return useQuery({
         queryKey: ["admin", "category", id],
-        queryFn: () => getAdminCategoryById(id),
+        queryFn: () => getCategoryById(id),
         enabled: !!id,
     });
 };
