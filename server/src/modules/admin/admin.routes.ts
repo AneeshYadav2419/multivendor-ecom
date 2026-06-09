@@ -50,4 +50,28 @@ router.get(
   adminController.getAllUsers
 );
 
+// GET ALL ORDERS (table)
+router.get(
+  "/orders",
+  protect,
+  restrictTo("ADMIN"),
+  adminController.getAllOrders
+);
+
+// GET SINGLE ORDER (drawer)
+router.get(
+  "/orders/:id",
+  protect,
+  restrictTo("ADMIN"),
+  adminController.getOrderById
+);
+
+// UPDATE ORDER (status, shipping, cancel, etc.)
+router.patch(
+  "/orders/:id",
+  protect,
+  restrictTo("ADMIN"),
+  adminController.updateOrder
+);
+
 export default router;
