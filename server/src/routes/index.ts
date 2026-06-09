@@ -5,7 +5,7 @@ import productRoutes from "../modules/products/product.routes.js";
 import categoryRoutes from "../modules/category/categoryRoutes.js";
 import cartRoutes from "./cartRoutes.js";
 import orderRoutes from "../modules/order/orderRoutes.js";
-import paymentRoutes from "./paymentRoutes.js";
+import paymentRoutes from "../modules/payments/payment.routes.js";
 import adminRoutes from "../modules/admin/admin.routes.js";
 import adminVendorRoutes from "../modules/admin/admin.routes.js";
 import adminProductRoutes

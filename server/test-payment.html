@@ -1,125 +1,178 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Razorpay Flow</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 40px; background-color: #f4f4f9; }
-        .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        button { background-color: #528FF0; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; width: 100%; margin-top: 10px; }
-        button:hover { background-color: #3b74d6; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-        #logs { background: #1e1e1e; color: #00ff00; padding: 15px; margin-top: 20px; border-radius: 5px; font-family: monospace; font-size: 12px; white-space: pre-wrap; height: 200px; overflow-y: auto; }
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            background-color: #f4f4f9;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            background-color: #528FF0;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #3b74d6;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        #logs {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            height: 200px;
+            overflow-y: auto;
+        }
     </style>
 </head>
+
 <body>
 
-<div class="container">
-    <h2>Test Payment Flow</h2>
-    
-    <label>Your Customer Access Token (from login)</label>
-    <input type="text" id="token" placeholder="Bearer eyJhbGciOi...">
+    <div class="container">
+        <h2>Test Payment Flow</h2>
 
-    <label>Your Existing Order ID</label>
-    <input type="text" id="orderId" placeholder="cuid...">
+        <label>Your Customer Access Token (from login)</label>
+        <input type="text" id="token" placeholder="Bearer eyJhbGciOi...">
 
-    <button onclick="startPayment()">1. Create & Pay Order</button>
-    
-    <div id="logs">Waiting for action...</div>
-</div>
+        <label>Your Existing Order ID</label>
+        <input type="text" id="orderId" placeholder="cuid...">
 
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script>
-    const API_URL = "http://localhost:5000/api";
+        <button onclick="startPayment()">1. Create & Pay Order</button>
 
-    function log(msg) {
-        const logs = document.getElementById("logs");
-        logs.innerHTML += `\n> ${msg}`;
-        logs.scrollTop = logs.scrollHeight;
-    }
+        <div id="logs">Waiting for action...</div>
+    </div>
 
-    async function startPayment() {
-        const token = document.getElementById('token').value;
-        const orderId = document.getElementById('orderId').value;
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        const API_URL = "http://localhost:5000/api";
 
-        if (!token || !orderId) return alert("Please enter token and orderId");
-
-        try {
-            log("Calling /api/payments/create-order...");
-            
-            // 1. Create Razorpay Order
-            const createRes = await fetch(`${API_URL}/payments/create-order`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}` 
-                },
-                body: JSON.stringify({ orderId })
-            });
-
-            const createData = await createRes.json();
-            
-            if (!createData.success) {
-                log(`Error: ${JSON.stringify(createData)}`);
-                return;
-            }
-
-            log(`Razorpay Order Created: ${createData.data.razorpayOrderId}`);
-            log("Opening Razorpay Modal...");
-
-            // 2. Configure Razorpay Options
-            const options = {
-                "key": createData.data.key, // Your RAZORPAY_KEY_ID
-                "amount": createData.data.amount,
-                "currency": createData.data.currency,
-                "name": "Test E-Commerce",
-                "description": "Test Transaction",
-                "order_id": createData.data.razorpayOrderId,
-                
-                // 3. Handle Success Verification Callback
-                "handler": async function (response) {
-                    log("Payment successful! Response received:");
-                    log(JSON.stringify(response));
-                    log("Calling /api/payments/verify...");
-
-                    // Verify Payment Backend Call
-                    const verifyRes = await fetch(`${API_URL}/payments/verify`, {
-                        method: 'POST',
-                        headers: { 
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}` 
-                        },
-                        body: JSON.stringify({
-                            orderId: orderId,
-                            razorpay_order_id: response.razorpay_order_id,
-                            razorpay_payment_id: response.razorpay_payment_id,
-                            razorpay_signature: response.razorpay_signature
-                        })
-                    });
-
-                    const verifyData = await verifyRes.json();
-                    if(verifyData.success) {
-                        log("✅ VERIFICATION SUCCESSFUL! Order is now PAID.");
-                    } else {
-                        log(`❌ Verification Failed: ${JSON.stringify(verifyData)}`);
-                    }
-                },
-                "theme": { "color": "#528FF0" }
-            };
-
-            // 4. Open Razorpay Checkout
-            const rzp1 = new Razorpay(options);
-            rzp1.on('payment.failed', function (response){
-                log(`❌ Payment Failed: ${response.error.description}`);
-            });
-            rzp1.open();
-
-        } catch (error) {
-            log(`Network Error: ${error.message}`);
+        function log(msg) {
+            const logs = document.getElementById("logs");
+            logs.innerHTML += `\n> ${msg}`;
+            logs.scrollTop = logs.scrollHeight;
         }
-    }
-</script>
+
+        async function startPayment() {
+            const token = document.getElementById('token').value;
+            const orderId = document.getElementById('orderId').value;
+
+            if (!token || !orderId) return alert("Please enter token and orderId");
+
+            try {
+                log("Calling /api/payments/create-order...");
+
+                // 1. Create Razorpay Order
+                const createRes = await fetch(`${API_URL}/payments/create-order`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ orderId })
+                });
+
+                const createData = await createRes.json();
+
+                if (!createData.success) {
+                    log(`Error: ${JSON.stringify(createData)}`);
+                    return;
+                }
+
+                log(`Razorpay Order Created: ${createData.order.id}`);
+                log("Opening Razorpay Modal...");
+
+                // 2. Configure Razorpay Options
+                const options = {
+                    key: process.env.RAZORPAY_KEY_ID, // from env or backend config
+                    amount: createData.order.amount,
+                    currency: createData.order.currency,
+                    name: "Test E-Commerce",
+                    description: "Test Transaction",
+                    order_id: createData.order.id,
+
+                    handler: async function (response) {
+                        log("Payment successful!");
+                        log(JSON.stringify(response));
+
+                        const verifyRes = await fetch(`${API_URL}/payments/verify`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                orderId: orderId,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature
+                            })
+                        });
+
+                        const verifyData = await verifyRes.json();
+
+                        if (verifyData.success) {
+                            log("✅ VERIFICATION SUCCESSFUL! Order is now PAID.");
+                        } else {
+                            log(`❌ Verification Failed: ${JSON.stringify(verifyData)}`);
+                        }
+                    },
+
+                    theme: { color: "#528FF0" }
+                };
+
+                // 4. Open Razorpay Checkout
+                // const rzp1 = new Razorpay(options);
+                const rzp1 = new window.Razorpay(options);
+                rzp1.on('payment.failed', function (response) {
+                    log(`❌ Payment Failed: ${response.error.description}`);
+                });
+                if (!window.Razorpay) {
+                    log("Razorpay SDK not loaded");
+                    return;
+                }
+                rzp1.open();
+
+            } catch (error) {
+                log(`Network Error: ${error.message}`);
+            }
+        }
+    </script>
 
 </body>
+
 </html>

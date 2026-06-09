@@ -68,49 +68,99 @@ export const createPaymentOrderService = async (
 /**
  * VERIFY PAYMENT SERVICE
  */
+// export const verifyPaymentService = async (
+//     razorpay_order_id: string,
+//     razorpay_payment_id: string,
+//     razorpay_signature: string,
+//     orderId: string
+// ) => {
+
+//     // 1. Generate expected signature
+//     const generatedSignature = crypto
+//         .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
+//         .update(
+//             razorpay_order_id + "|" + razorpay_payment_id
+//         )
+//         .digest("hex");
+
+//     // 2. Compare signatures
+//     const isAuthentic =
+//         generatedSignature === razorpay_signature;
+
+//     // 3. Invalid payment
+//     if (!isAuthentic) {
+
+//         await prisma.order.update({
+//             where: { id: orderId },
+
+//             data: {
+//                 paymentStatus: "FAILED",
+//             },
+//         });
+
+//         throw new AppError(
+//             "Payment verification failed.",
+//             400,
+//             "INVALID_PAYMENT"
+//         );
+//     }
+
+//     // 4. Mark order paid
+//     const updatedOrder = await prisma.order.update({
+//         where: {
+//             id: orderId,
+//         },
+
+//         data: {
+//             paymentStatus: "PAID",
+//             razorpayPaymentId: razorpay_payment_id,
+//             status: "PROCESSING",
+//         },
+//     });
+
+//     return updatedOrder;
+// };
+
+
 export const verifyPaymentService = async (
     razorpay_order_id: string,
     razorpay_payment_id: string,
     razorpay_signature: string,
     orderId: string
 ) => {
+    // 1. Validate input first
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !orderId) {
+        throw new AppError("Missing payment fields", 422, "MISSING_FIELDS");
+    }
 
-    // 1. Generate expected signature
+    // 2. Generate signature
+    const secret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!secret) {
+        throw new AppError("Server misconfiguration", 500, "NO_SECRET");
+    }
+
     const generatedSignature = crypto
-        .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET!)
-        .update(
-            razorpay_order_id + "|" + razorpay_payment_id
-        )
+        .createHmac("sha256", secret)
+        .update(`${razorpay_order_id}|${razorpay_payment_id}`)
         .digest("hex");
 
-    // 2. Compare signatures
-    const isAuthentic =
-        generatedSignature === razorpay_signature;
-
-    // 3. Invalid payment
-    if (!isAuthentic) {
-
+    // 3. Compare safely
+    if (generatedSignature !== razorpay_signature) {
         await prisma.order.update({
             where: { id: orderId },
-
             data: {
                 paymentStatus: "FAILED",
+                status: "CANCELLED",
             },
         });
 
-        throw new AppError(
-            "Payment verification failed.",
-            400,
-            "INVALID_PAYMENT"
-        );
+        throw new AppError("Payment verification failed", 400, "INVALID_PAYMENT");
     }
 
-    // 4. Mark order paid
+    // 4. Update order
     const updatedOrder = await prisma.order.update({
-        where: {
-            id: orderId,
-        },
-
+        where: { id: orderId },
         data: {
             paymentStatus: "PAID",
             razorpayPaymentId: razorpay_payment_id,
