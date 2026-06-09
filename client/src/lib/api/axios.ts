@@ -128,3 +128,14 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+api.interceptors.response.use(
+  (res) => res,
+  async (error) => {
+    if (error.response?.data?.code === "TOKEN_EXPIRED") {
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
+
+    return Promise.reject(error);
+  }
+);
