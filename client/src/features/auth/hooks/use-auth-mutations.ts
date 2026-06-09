@@ -23,26 +23,30 @@ export const useLoginMutation = (options?: {
 
   return useMutation<AuthResponse, AxiosError<ApiErrorResponse>, LoginFormValues>({
     mutationFn: loginUser,
+
     onSuccess: (response) => {
       const { accessToken, user } = response.data;
 
-      // Update in-memory and persisted stores
+      // ✅ update Zustand store
       setAccessToken(accessToken);
       setUser(user);
 
+      // ✅ persist login
+      localStorage.setItem("token", accessToken);
+      localStorage.setItem("user", JSON.stringify(user));
+
       toast.success("Welcome back! Login successful.");
 
-      if (options?.onSuccess) {
-        options.onSuccess(user, accessToken);
-      }
+      // optional callback from component
+      options?.onSuccess?.(user, accessToken);
     },
-    onError: (error) => {
-      const errMsg = error.response?.data?.message || "Invalid credentials. Please try again.";
-      toast.error(errMsg);
 
-      if (options?.onError) {
-        options.onError(errMsg);
-      }
+    onError: (error) => {
+      const errMsg =
+        error.response?.data?.message || "Invalid credentials. Please try again.";
+
+      toast.error(errMsg);
+      options?.onError?.(errMsg);
     },
   });
 };

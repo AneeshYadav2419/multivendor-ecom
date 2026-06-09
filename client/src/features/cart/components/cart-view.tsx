@@ -16,7 +16,7 @@ import { formatPrice } from "@/features/products/lib/format-price";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import ShippingPage from "@/app/shipping/page";
 export const CartView: React.FC = () => {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
@@ -219,7 +219,7 @@ export const CartView: React.FC = () => {
               </div>
               <Button
                 className="mt-6 h-12 w-full bg-white text-base font-semibold text-slate-900 hover:bg-slate-100"
-                onClick={() => router.push("/checkout")}
+                onClick={() => router.push("/shipping")}
               >
                 Proceed to checkout
               </Button>

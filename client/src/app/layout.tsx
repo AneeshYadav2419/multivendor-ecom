@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import "./globals.css";
+import Script from "next/script";
 
 
 import QueryProvider from "@/providers/query-provider";
@@ -21,6 +22,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <Script
+          src="https://checkout.razorpay.com/v1/checkout.js"
+          strategy="beforeInteractive"
+        />
+      </head>
       <body>
         <QueryProvider>
           <AuthHydrationProvider>
