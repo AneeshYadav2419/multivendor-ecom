@@ -16,6 +16,9 @@ import OrdersChart from
 import { useOrdersTrend }
     from "@/features/analytics/hooks/useOrdersTrend";
 
+import TopProductsTable from "@/features/analytics/components/tables/TopProductsTable";
+import { useTopProducts } from "@/features/analytics/hooks/useTopProducts";
+
 export default function AnalyticsPage() {
     const {
         data,
@@ -27,6 +30,7 @@ export default function AnalyticsPage() {
         useRevenueTrend();
     const ordersTrend =
         useOrdersTrend();
+    const topProducts = useTopProducts();
 
     // if (isLoading) {
     //     return (
@@ -55,6 +59,9 @@ export default function AnalyticsPage() {
 
                 <OrdersChart
                     data={ordersTrend.data ?? []}
+                />
+                <TopProductsTable
+                    products={topProducts.data ?? []}
                 />
             </div>
         </div>
