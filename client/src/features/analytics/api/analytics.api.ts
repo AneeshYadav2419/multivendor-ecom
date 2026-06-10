@@ -1,6 +1,6 @@
 import { api } from "@/lib/api/axios";
 import { AnalyticsDashboardResponse } from "../types/analytics.types";
-import { RevenueTrendItem, OrdersTrendItem, TopProduct } from "../types/analytics.types";
+import { RevenueTrendItem, OrdersTrendItem, TopProduct, TopVendor, RecentOrder } from "../types/analytics.types";
 
 export const analyticsApi = {
     async getDashboardOverview() {
@@ -33,6 +33,22 @@ export const analyticsApi = {
             success: boolean;
             data: TopProduct[];
         }>("/admin/analytics/top-products");
+
+        return response.data.data;
+    },
+    async getTopVendors() {
+        const response = await api.get<{
+            success: boolean;
+            data: TopVendor[];
+        }>("/admin/analytics/top-vendors");
+
+        return response.data.data;
+    },
+    async getRecentOrders() {
+        const response = await api.get<{
+            success: boolean;
+            data: RecentOrder[];
+        }>("/admin/analytics/recent-orders");
 
         return response.data.data;
     },

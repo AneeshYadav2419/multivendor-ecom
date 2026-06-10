@@ -20,7 +20,18 @@ export default function OrdersChart({
     data,
 }: Props) {
     return (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
+        <div className="
+rounded-3xl
+border
+border-slate-800/60
+bg-slate-900/50
+backdrop-blur-sm
+shadow-sm
+p-6
+transition-all
+duration-300
+hover:border-slate-700
+">
             <h2 className="mb-6 text-lg font-semibold text-white">
                 Orders Trend
             </h2>
