@@ -7,5 +7,12 @@ router.get(
     "/dashboard",
     analyticsController.getDashboardOverview
 );
-
+router.get(
+    "/revenue-trend",
+    analyticsController.getRevenueTrend
+);
+router.get(
+    "/orders-trend",
+    analyticsController.getOrdersTrend
+);
 export default router;
