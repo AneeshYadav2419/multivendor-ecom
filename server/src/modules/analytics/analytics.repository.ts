@@ -99,15 +99,44 @@ export const analyticsRepository = {
         });
     },
     async getTopProductsData() {
-  return prisma.orderItem.findMany({
-    include: {
-      product: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
+        return prisma.orderItem.findMany({
+            include: {
+                product: {
+                    select: {
+                        id: true,
+                        name: true,
+                    },
+                },
+            },
+        });
     },
-  });
-}
+    async getTopVendorsData() {
+        return prisma.orderItem.findMany({
+            include: {
+                vendor: {
+                    select: {
+                        id: true,
+                        storeName: true,
+                    },
+                },
+            },
+        });
+    },
+    async getRecentOrdersData() {
+        return prisma.order.findMany({
+            take: 5,
+
+            orderBy: {
+                createdAt: "desc",
+            },
+
+            include: {
+                customer: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
+        });
+    },
 };

@@ -13,8 +13,23 @@ export interface OrdersTrendItem {
     orders: number;
 }
 export interface TopProduct {
-  productId: string;
-  name: string;
-  orders: number;
-  revenue: number;
+    productId: string;
+    name: string;
+    orders: number;
+    revenue: number;
+}
+
+export interface TopVendor {
+    vendorId: string;
+    storeName: string;
+    orders: number;
+    revenue: number;
+}
+export interface RecentOrder {
+    id: string;
+    customerName: string;
+    amount: number;
+    status: string;
+    paymentStatus: string;
+    createdAt: Date;
 }

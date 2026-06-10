@@ -19,4 +19,12 @@ router.get(
     "/top-products",
     analyticsController.getTopProducts
 );
+router.get(
+    "/top-vendors",
+    analyticsController.getTopVendors
+);
+router.get(
+    "/recent-orders",
+    analyticsController.getRecentOrders
+);
 export default router;

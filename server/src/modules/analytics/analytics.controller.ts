@@ -49,4 +49,30 @@ export const getTopProducts = async (
         success: true,
         data,
     });
+
+};
+export const getTopVendors = async (
+    req: Request,
+    res: Response
+) => {
+    const data =
+        await analyticsService.getTopVendors();
+
+    return res.status(200).json({
+        success: true,
+        data,
+    });
+
+};
+export const getRecentOrders = async (
+    req: Request,
+    res: Response
+) => {
+    const data =
+        await analyticsService.getRecentOrders();
+
+    return res.status(200).json({
+        success: true,
+        data,
+    });
 };

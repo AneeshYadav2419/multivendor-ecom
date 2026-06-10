@@ -5,6 +5,8 @@ import {
     RevenueTrendItem,
     OrdersTrendItem,
     TopProduct,
+    TopVendor,
+    RecentOrder
 } from "./analytics.types.js";
 
 export const analyticsService = {
@@ -124,5 +126,54 @@ export const analyticsService = {
                 (a, b) => b.orders - a.orders
             )
             .slice(0, 5);
+    },
+    async getTopVendors(): Promise<TopVendor[]> {
+        const items =
+            await analyticsRepository.getTopVendorsData();
+
+        const vendorMap = new Map<
+            string,
+            TopVendor
+        >();
+
+        items.forEach((item) => {
+            const vendorId = item.vendor.id;
+            const storeName = item.vendor.storeName;
+
+            const revenue =
+                Number(item.price) * item.quantity;
+
+            if (!vendorMap.has(vendorId)) {
+                vendorMap.set(vendorId, {
+                    vendorId,
+                    storeName,
+                    orders: 0,
+                    revenue: 0,
+                });
+            }
+
+            const existing =
+                vendorMap.get(vendorId)!;
+
+            existing.orders += item.quantity;
+            existing.revenue += revenue;
+        });
+
+        return Array.from(vendorMap.values())
+            .sort((a, b) => b.revenue - a.revenue)
+            .slice(0, 5);
+    },
+    async getRecentOrders(): Promise<RecentOrder[]> {
+        const orders =
+            await analyticsRepository.getRecentOrdersData();
+
+        return orders.map((order) => ({
+            id: order.id,
+            customerName: order.customer.name,
+            amount: Number(order.totalAmount),
+            status: order.status,
+            paymentStatus: order.paymentStatus,
+            createdAt: order.createdAt,
+        }));
     }
 };
