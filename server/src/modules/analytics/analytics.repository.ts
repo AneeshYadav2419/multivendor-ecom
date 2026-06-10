@@ -98,4 +98,16 @@ export const analyticsRepository = {
             },
         });
     },
+    async getTopProductsData() {
+  return prisma.orderItem.findMany({
+    include: {
+      product: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
+  });
+}
 };

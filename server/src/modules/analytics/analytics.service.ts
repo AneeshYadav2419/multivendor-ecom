@@ -4,6 +4,7 @@ import {
     DashboardOverview,
     RevenueTrendItem,
     OrdersTrendItem,
+    TopProduct,
 } from "./analytics.types.js";
 
 export const analyticsService = {
@@ -86,4 +87,42 @@ export const analyticsService = {
             orders,
         }));
     },
+    async getTopProducts(): Promise<TopProduct[]> {
+        const items =
+            await analyticsRepository.getTopProductsData();
+
+        const productsMap = new Map<
+            string,
+            TopProduct
+        >();
+
+        items.forEach((item) => {
+            const productId = item.product.id;
+            const productName = item.product.name;
+
+            const revenue =
+                Number(item.price) * item.quantity;
+
+            if (!productsMap.has(productId)) {
+                productsMap.set(productId, {
+                    productId,
+                    name: productName,
+                    orders: 0,
+                    revenue: 0,
+                });
+            }
+
+            const existing =
+                productsMap.get(productId)!;
+
+            existing.orders += item.quantity;
+            existing.revenue += revenue;
+        });
+
+        return Array.from(productsMap.values())
+            .sort(
+                (a, b) => b.orders - a.orders
+            )
+            .slice(0, 5);
+    }
 };

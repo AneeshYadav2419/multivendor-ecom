@@ -15,4 +15,8 @@ router.get(
     "/orders-trend",
     analyticsController.getOrdersTrend
 );
+router.get(
+    "/top-products",
+    analyticsController.getTopProducts
+);
 export default router;

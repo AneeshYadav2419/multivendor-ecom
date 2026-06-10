@@ -37,3 +37,16 @@ export const getOrdersTrend = async (
         data,
     });
 };
+
+export const getTopProducts = async (
+    req: Request,
+    res: Response
+) => {
+    const data =
+        await analyticsService.getTopProducts();
+
+    return res.status(200).json({
+        success: true,
+        data,
+    });
+};

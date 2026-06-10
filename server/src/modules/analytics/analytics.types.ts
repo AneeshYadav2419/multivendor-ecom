@@ -12,3 +12,9 @@ export interface OrdersTrendItem {
     month: string;
     orders: number;
 }
+export interface TopProduct {
+  productId: string;
+  name: string;
+  orders: number;
+  revenue: number;
+}
