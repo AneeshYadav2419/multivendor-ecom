@@ -9,3 +9,11 @@ export interface AnalyticsDashboardResponse {
     success: boolean;
     data: AnalyticsOverview;
 }
+export interface RevenueTrendItem {
+    month: string;
+    revenue: number;
+}
+export interface OrdersTrendItem {
+    month: string;
+    orders: number;
+}
