@@ -54,10 +54,15 @@ import CreateCouponDialog
 
 import { useCoupons }
     from "@/features/coupons/hooks/useCoupons";
+import CouponSearch from "@/features/coupons/components/CouponSearch";
+import CouponStats
+    from "@/features/coupons/components/CouponStats";
 
 export default function CouponsPage() {
     const [selectedCoupon, setSelectedCoupon] =
         useState<Coupon | null>(null);
+    const [search, setSearch] =
+        useState("");
 
     const [isEditOpen, setIsEditOpen] =
         useState(false);
@@ -72,6 +77,15 @@ export default function CouponsPage() {
         data,
         isLoading,
     } = useCoupons();
+
+    const filteredCoupons =
+        (data ?? []).filter((coupon) =>
+            coupon.code
+                .toLowerCase()
+                .includes(
+                    search.toLowerCase()
+                )
+        );
 
     if (isLoading) {
         return (
@@ -97,8 +111,17 @@ export default function CouponsPage() {
 
                 <CreateCouponDialog />
             </div>
-            <CouponsTable
+
+            <CouponStats
                 coupons={data ?? []}
+            />
+
+            <CouponSearch
+                value={search}
+                onChange={setSearch}
+            />
+            <CouponsTable
+                coupons={filteredCoupons}
                 onEdit={handleEdit}
             />
             <EditCouponDialog
