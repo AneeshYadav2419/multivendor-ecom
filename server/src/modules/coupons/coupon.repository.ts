@@ -1,5 +1,5 @@
 import prisma from "../../config/prismaClient.js";
-import { CreateCouponDto } from "./coupon.types.js";
+import { CreateCouponDto, UpdateCouponDto } from "./coupon.types.js";
 
 export const couponRepository = {
     async create(data: CreateCouponDto) {
@@ -13,6 +13,33 @@ export const couponRepository = {
             orderBy: {
                 createdAt: "desc",
             },
+        });
+    },
+
+    // async update(
+    //     id: string,
+    //     data: UpdateCouponDto
+    // ) {
+    //     return prisma.coupon.update({
+    //         where: {
+    //             id,
+    //         },
+    //         data,
+    //     });
+    // },
+    async update(
+        id: string,
+        data: UpdateCouponDto
+    ) {
+
+        console.log(
+            "REPOSITORY DATA",
+            data
+        );
+
+        return prisma.coupon.update({
+            where: { id },
+            data,
         });
     },
 };

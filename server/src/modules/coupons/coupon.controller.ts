@@ -31,4 +31,42 @@ export const getCoupons = async (
         success: true,
         data: coupons,
     });
+
+
+};
+// export const updateCoupon = async (
+//     req: Request,
+//     res: Response
+// ) => {
+//     const coupon =
+//         await couponService.updateCoupon(
+//             req.params.id as string,
+//             req.body
+//         );
+
+//     res.status(200).json({
+//         success: true,
+//         data: coupon,
+//     });
+// };
+export const updateCoupon = async (
+    req: Request,
+    res: Response
+) => {
+
+    console.log(
+        "REQ BODY",
+        req.body
+    );
+
+    const coupon =
+        await couponService.updateCoupon(
+            req.params.id as string,
+            req.body
+        );
+
+    res.status(200).json({
+        success: true,
+        data: coupon,
+    });
 };

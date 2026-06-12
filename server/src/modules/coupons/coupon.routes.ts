@@ -25,4 +25,11 @@ router.post(
     couponController.createCoupon
 );
 
+router.patch(
+    "/:id",
+    protect,
+    restrictTo("ADMIN"),
+    couponController.updateCoupon
+);
+
 export default router;
