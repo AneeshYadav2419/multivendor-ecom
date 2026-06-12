@@ -16,6 +16,8 @@ import analyticsRoutes
   from "../modules/analytics/analytics.routes.js";
 import couponRoutes
   from "../modules/coupons/coupon.routes.js";
+import settingsRoutes
+  from "../modules/settings/settings.routes.js";
 
 /**
  * Central route registry — single place to see all API mounts.
@@ -43,6 +45,10 @@ export const registerRoutes = (app: Express): void => {
   app.use(
     "/api/admin/coupons",
     couponRoutes
+  );
+  app.use(
+    "/api/admin/settings",
+    settingsRoutes
   );
 
 };
