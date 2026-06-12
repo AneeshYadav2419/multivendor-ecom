@@ -38,6 +38,13 @@
 //     );
 // }
 "use client";
+import { useState } from "react";
+
+import EditCouponDialog
+    from "@/features/coupons/components/EditCouponDialog";
+
+import { Coupon }
+    from "@/features/coupons/types/coupon.types";
 
 import CouponsTable
     from "@/features/coupons/components/CouponsTable";
@@ -49,6 +56,18 @@ import { useCoupons }
     from "@/features/coupons/hooks/useCoupons";
 
 export default function CouponsPage() {
+    const [selectedCoupon, setSelectedCoupon] =
+        useState<Coupon | null>(null);
+
+    const [isEditOpen, setIsEditOpen] =
+        useState(false);
+
+    const handleEdit = (
+        coupon: Coupon
+    ) => {
+        setSelectedCoupon(coupon);
+        setIsEditOpen(true);
+    };
     const {
         data,
         isLoading,
@@ -78,9 +97,16 @@ export default function CouponsPage() {
 
                 <CreateCouponDialog />
             </div>
-
             <CouponsTable
                 coupons={data ?? []}
+                onEdit={handleEdit}
+            />
+            <EditCouponDialog
+                coupon={selectedCoupon}
+                open={isEditOpen}
+                onClose={() =>
+                    setIsEditOpen(false)
+                }
             />
 
         </div>

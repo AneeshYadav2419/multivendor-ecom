@@ -18,4 +18,15 @@ export const couponsApi = {
 
         return res.data.data;
     },
+    async updateCoupon(
+        id: string,
+        data: any
+    ) {
+        const res = await api.patch(
+            `/admin/coupons/${id}`,
+            data
+        );
+
+        return res.data.data;
+    },
 };
