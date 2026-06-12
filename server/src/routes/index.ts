@@ -14,6 +14,8 @@ import vendorOrderRoutes
   from "../modules/orders/vendorOrder.route.js";
 import analyticsRoutes
   from "../modules/analytics/analytics.routes.js";
+import couponRoutes
+  from "../modules/coupons/coupon.routes.js";
 
 /**
  * Central route registry — single place to see all API mounts.
@@ -37,6 +39,10 @@ export const registerRoutes = (app: Express): void => {
   app.use(
     "/api/admin/analytics",
     analyticsRoutes
+  );
+  app.use(
+    "/api/admin/coupons",
+    couponRoutes
   );
 
 };
