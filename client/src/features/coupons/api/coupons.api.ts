@@ -29,4 +29,37 @@ export const couponsApi = {
 
         return res.data.data;
     },
+    // async toggleCouponStatus(
+    //     id: string,
+    //     isActive: boolean
+    // ) {
+    //     const res = await api.patch(
+    //         `/admin/coupons/${id}/status`,
+    //         {
+    //             isActive,
+    //         }
+    //     );
+
+    //     return res.data.data;
+    // }
+    async toggleCouponStatus(
+        id: string,
+        isActive: boolean
+    ) {
+        const res = await api.patch(
+            `/admin/coupons/${id}/status`,
+            {
+                isActive,
+            }
+        );
+
+        return res.data.data;
+    },
+    async deleteCoupon(id: string) {
+        const res = await api.delete(
+            `/admin/coupons/${id}`
+        );
+
+        return res.data;
+    },
 };
