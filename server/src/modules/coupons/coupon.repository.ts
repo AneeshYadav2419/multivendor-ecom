@@ -42,4 +42,22 @@ export const couponRepository = {
             data,
         });
     },
+    async toggleStatus(
+        id: string,
+        isActive: boolean
+    ) {
+        return prisma.coupon.update({
+            where: { id },
+            data: {
+                isActive,
+            },
+        });
+    },
+    async delete(id: string) {
+        return prisma.coupon.delete({
+            where: {
+                id,
+            },
+        });
+    }
 };

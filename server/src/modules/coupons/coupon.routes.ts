@@ -31,5 +31,13 @@ router.patch(
     restrictTo("ADMIN"),
     couponController.updateCoupon
 );
+router.patch(
+    "/:id/status",
+    couponController.toggleCouponStatus
+);
 
+router.delete(
+    "/:id",
+    couponController.deleteCoupon
+);
 export default router;

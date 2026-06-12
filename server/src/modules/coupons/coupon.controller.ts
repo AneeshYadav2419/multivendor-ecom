@@ -70,3 +70,34 @@ export const updateCoupon = async (
         data: coupon,
     });
 };
+export const toggleCouponStatus =
+    async (
+        req: Request,
+        res: Response
+    ) => {
+
+        const coupon =
+            await couponService.toggleCouponStatus(
+                req.params.id as string,
+                req.body.isActive
+            );
+
+        res.status(200).json({
+            success: true,
+            data: coupon,
+        });
+    };
+export const deleteCoupon = async (
+    req: Request,
+    res: Response
+) => {
+
+    await couponService.deleteCoupon(
+        req.params.id as string
+    );
+
+    return res.status(200).json({
+        success: true,
+        message: "Coupon deleted successfully",
+    });
+};

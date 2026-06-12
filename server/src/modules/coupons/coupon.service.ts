@@ -55,4 +55,16 @@ export const couponService = {
             }
         );
     },
+    async toggleCouponStatus(
+        id: string,
+        isActive: boolean
+    ) {
+        return couponRepository.toggleStatus(
+            id,
+            isActive
+        );
+    },
+    async deleteCoupon(id: string) {
+        return couponRepository.delete(id);
+    }
 };
