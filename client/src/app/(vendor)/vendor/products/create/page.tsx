@@ -335,34 +335,33 @@ export default function CreateProduct() {
                       <span className="text-[10px] text-slate-600 mt-0.5">Click the Sparkles icon for a demo image</span>
                     </div>
                   ) : (
-                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-1">
                       {imageFields.map((field, index) => {
                         const url = getValues(`images.${index}`);
                         return (
                           <div
                             key={field.id}
-                            className="flex items-center gap-2 p-2 border border-slate-800/80 bg-slate-950/40 rounded-lg group"
+                            className="relative group rounded-lg overflow-hidden border border-slate-800 bg-slate-950 aspect-square"
                           >
-                            <div className="h-8 w-8 rounded overflow-hidden bg-slate-900 shrink-0 border border-slate-850">
-                              <img
-                                src={url}
-                                alt={`Media ${index}`}
-                                className="h-full w-full object-cover"
-                                onError={(e) => {
-                                  (e.target as HTMLImageElement).style.display = "none";
-                                }}
-                              />
+                            <img
+                              src={url}
+                              alt={`Media ${index}`}
+                              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = "none";
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="icon"
+                                className="h-8 w-8 rounded-full bg-red-500/80 hover:bg-red-500 text-white shadow-lg"
+                                onClick={() => removeImage(index)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
                             </div>
-                            <span className="text-[10px] text-slate-450 truncate flex-1 leading-none">{url}</span>
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-slate-500 hover:text-red-400 hover:bg-red-950/20 shrink-0"
-                              onClick={() => removeImage(index)}
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
-                            </Button>
                           </div>
                         );
                       })}

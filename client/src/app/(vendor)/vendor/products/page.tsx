@@ -14,7 +14,8 @@ import {
   Filter, 
   ExternalLink,
   PackageOpen,
-  Image as ImageIcon
+  Image as ImageIcon,
+  CheckSquare
 } from "lucide-react";
 import Link from "next/link";
 import { useState, useMemo } from "react";
@@ -33,6 +34,11 @@ export default function VendorProducts() {
   // Deletion state
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Bulk action state
+  const [selectedProductIds, setSelectedProductIds] = useState<Set<string>>(new Set());
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
   // Fetch products
   const { data, isLoading, error, refetch } = useQuery({
@@ -64,6 +70,24 @@ export default function VendorProducts() {
     }
   };
 
+  const handleBulkDelete = async () => {
+    setIsBulkDeleting(true);
+    try {
+      const deletePromises = Array.from(selectedProductIds).map(id => deleteProduct(id));
+      await Promise.all(deletePromises);
+      
+      toast.success(`${selectedProductIds.size} products deleted successfully`);
+      setSelectedProductIds(new Set());
+      setShowBulkDeleteConfirm(false);
+      queryClient.invalidateQueries({ queryKey: ["vendorProducts"] });
+      queryClient.invalidateQueries({ queryKey: ["vendorDashboardStats"] });
+    } catch (err) {
+      toast.error("Failed to delete some products");
+    } finally {
+      setIsBulkDeleting(false);
+    }
+  };
+
   // Format currency helper
   const formatCurrency = (value: string | number) => {
     const numericValue = typeof value === "string" ? parseFloat(value) : value;
@@ -91,6 +115,25 @@ export default function VendorProducts() {
       return matchesSearch && matchesStatus;
     });
   }, [data, searchQuery, statusFilter]);
+
+  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.checked && filteredProducts.length > 0) {
+      const allIds = new Set(filteredProducts.map(p => p.id));
+      setSelectedProductIds(allIds);
+    } else {
+      setSelectedProductIds(new Set());
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+    const newSet = new Set(selectedProductIds);
+    if (checked) {
+      newSet.add(id);
+    } else {
+      newSet.delete(id);
+    }
+    setSelectedProductIds(newSet);
+  };
 
   if (error) {
     return (
@@ -166,6 +209,14 @@ export default function VendorProducts() {
             <table className="w-full border-collapse text-left text-sm text-slate-300">
               <thead className="border-b border-slate-800 bg-slate-900/20 text-xs font-semibold uppercase tracking-wider text-slate-400">
                 <tr>
+                  <th scope="col" className="px-4 py-4 w-12">
+                    <input 
+                      type="checkbox" 
+                      className="h-4 w-4 rounded border-slate-700 bg-[#020617] text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer"
+                      checked={filteredProducts.length > 0 && selectedProductIds.size === filteredProducts.length}
+                      onChange={handleSelectAll}
+                    />
+                  </th>
                   <th scope="col" className="px-6 py-4">Product Info</th>
                   <th scope="col" className="px-6 py-4">Category</th>
                   <th scope="col" className="px-6 py-4">Price</th>
@@ -178,6 +229,7 @@ export default function VendorProducts() {
                 {isLoading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i}>
+                      <td className="px-4 py-4"><Skeleton className="h-4 w-4 bg-slate-800 rounded" /></td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <Skeleton className="h-10 w-10 rounded-lg bg-slate-800 shrink-0" />
@@ -196,7 +248,7 @@ export default function VendorProducts() {
                   ))
                 ) : filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="px-6 py-16 text-center">
+                    <td colSpan={7} className="px-6 py-16 text-center">
                       <div className="flex flex-col items-center justify-center">
                         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-400 mb-4 border border-indigo-500/20">
                           <PackageOpen className="h-6 w-6" />
@@ -220,15 +272,28 @@ export default function VendorProducts() {
                   </tr>
                 ) : (
                   filteredProducts.map((product) => {
-                    // Fallback to custom status calculation or display isActive
-                    const isProductActive = product.isActive;
-                    const statusText = isProductActive ? "ACTIVE" : "DRAFT";
+                    // Determine status
+                    const statusText = (product as any).status || (product.isActive ? "ACTIVE" : "DRAFT");
+                    
+                    let statusColorClasses = "bg-slate-500/10 text-slate-400 border-slate-500/20";
+                    if (statusText === "ACTIVE") statusColorClasses = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                    else if (statusText === "DRAFT") statusColorClasses = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+                    else if (statusText === "OUT_OF_STOCK") statusColorClasses = "bg-rose-500/10 text-rose-400 border-rose-500/20";
+                    else if (statusText === "ARCHIVED") statusColorClasses = "bg-slate-800 text-slate-400 border-slate-700";
                     
                     return (
                       <tr 
                         key={product.id} 
-                        className="hover:bg-slate-900/20 transition-colors group"
+                        className={`hover:bg-slate-900/40 transition-colors group ${selectedProductIds.has(product.id) ? 'bg-indigo-500/5' : ''}`}
                       >
+                        <td className="px-4 py-4">
+                          <input 
+                            type="checkbox" 
+                            className="h-4 w-4 rounded border-slate-700 bg-[#020617] text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900 cursor-pointer"
+                            checked={selectedProductIds.has(product.id)}
+                            onChange={(e) => handleSelectOne(product.id, e.target.checked)}
+                          />
+                        </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-lg overflow-hidden border border-slate-800 bg-slate-950 shrink-0 flex items-center justify-center text-slate-600 relative">
@@ -246,9 +311,9 @@ export default function VendorProducts() {
                               )}
                             </div>
                             <div className="min-w-0">
-                              <div className="font-semibold text-white truncate max-w-[200px] sm:max-w-xs md:max-w-md">
+                              <Link href={`/vendor/products/edit/${product.id}`} className="font-semibold text-white hover:text-indigo-400 transition-colors truncate max-w-[200px] sm:max-w-xs md:max-w-md block">
                                 {product.name}
-                              </div>
+                              </Link>
                               <div className="text-xs text-slate-500 mt-0.5 truncate max-w-[200px] sm:max-w-xs">
                                 {product.description}
                               </div>
@@ -264,18 +329,22 @@ export default function VendorProducts() {
                           {formatCurrency(product.price)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={product.stock === 0 ? "text-rose-400 font-medium" : "text-slate-300"}>
-                            {product.stock} pcs
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={product.stock === 0 ? "text-rose-400 font-medium" : product.stock <= 10 ? "text-amber-400 font-medium" : "text-slate-300"}>
+                              {product.stock} pcs
+                            </span>
+                            {product.stock > 0 && product.stock <= 10 && (
+                              <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20 text-[10px] px-1.5 py-0 h-5">Low Stock</Badge>
+                            )}
+                            {product.stock === 0 && (
+                              <Badge variant="outline" className="bg-rose-500/10 text-rose-500 border-rose-500/20 text-[10px] px-1.5 py-0 h-5">Out of Stock</Badge>
+                            )}
+                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <Badge 
                             variant="outline"
-                            className={
-                              isProductActive 
-                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" 
-                                : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                            }
+                            className={statusColorClasses}
                           >
                             {statusText}
                           </Badge>
@@ -357,6 +426,86 @@ export default function VendorProducts() {
                 ) : (
                   "Delete"
                 )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── BULK DELETE CONFIRMATION DIALOG MODAL ── */}
+      {showBulkDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity" 
+            onClick={() => !isBulkDeleting && setShowBulkDeleteConfirm(false)}
+          />
+          <div className="relative w-full max-w-md rounded-xl border border-slate-800 bg-[#0c1020] p-6 shadow-2xl animate-in scale-in duration-200">
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-400 border border-red-500/20">
+                <AlertTriangle className="h-5 w-5" />
+              </div>
+              <div className="space-y-1.5 flex-1">
+                <h3 className="text-lg font-bold text-white">Delete {selectedProductIds.size} Products?</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">
+                  Are you sure you want to delete the selected products? 
+                  This action is permanent and cannot be undone.
+                </p>
+              </div>
+            </div>
+            
+            <div className="mt-6 flex items-center justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setShowBulkDeleteConfirm(false)}
+                disabled={isBulkDeleting}
+                className="border-slate-850 bg-slate-900/40 text-slate-300 hover:bg-slate-800 hover:text-white"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleBulkDelete}
+                disabled={isBulkDeleting}
+                className="bg-red-600 hover:bg-red-500 text-white min-w-[90px]"
+              >
+                {isBulkDeleting ? (
+                  <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                ) : (
+                  "Delete All"
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── FLOATING BULK ACTION BAR ── */}
+      {selectedProductIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-bottom-4">
+          <div className="flex items-center gap-4 rounded-full border border-indigo-500/30 bg-[#090d1f]/90 px-6 py-3 shadow-2xl backdrop-blur-md">
+            <div className="flex items-center gap-2 border-r border-slate-700 pr-4">
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-500/20 text-xs font-bold text-indigo-400 border border-indigo-500/20">
+                {selectedProductIds.size}
+              </span>
+              <span className="text-sm font-medium text-slate-300">Selected</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-slate-400 hover:text-white rounded-full"
+                onClick={() => setSelectedProductIds(new Set())}
+              >
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                size="sm" 
+                className="bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white border border-red-500/30 rounded-full"
+                onClick={() => setShowBulkDeleteConfirm(true)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Selected
               </Button>
             </div>
           </div>

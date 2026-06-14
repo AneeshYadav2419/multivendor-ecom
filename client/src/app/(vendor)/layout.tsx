@@ -17,7 +17,8 @@ import {
   ChevronRight,
   Store,
   Bell,
-  Loader2
+  Loader2,
+  ShoppingCart
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -40,6 +41,11 @@ const navItems: NavigationItem[] = [
     name: "Products",
     href: "/vendor/products",
     icon: Package,
+  },
+  {
+    name: "Orders",
+    href: "/vendor/orders",
+    icon: ShoppingCart,
   },
   {
     name: "Create Product",
@@ -113,7 +119,7 @@ export default function VendorLayout({
   // Derive page title for breadcrumb
   const currentNav = navItems.find((item) => pathname === item.href) || 
                      (pathname.startsWith("/vendor/products/edit") ? { name: "Edit Product", href: "" } : null);
-  const pageTitle = currentNav?.name || "Vendor Panel";
+  const pageTitle = currentNav?.name || (pathname.startsWith("/vendor/orders") ? "Orders" : "Vendor Panel");
 
   return (
     <div className="flex min-h-screen bg-[#020617] text-slate-100 overflow-hidden font-sans">

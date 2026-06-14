@@ -19,6 +19,17 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
+
+const mockChartData = [
+  { name: 'Jan', revenue: 45000, orders: 120 },
+  { name: 'Feb', revenue: 52000, orders: 145 },
+  { name: 'Mar', revenue: 48000, orders: 130 },
+  { name: 'Apr', revenue: 61000, orders: 165 },
+  { name: 'May', revenue: 59000, orders: 155 },
+  { name: 'Jun', revenue: 75000, orders: 190 },
+  { name: 'Jul', revenue: 82000, orders: 210 },
+];
 
 export default function VendorDashboard() {
   const { user } = useAuthStore();
@@ -214,21 +225,61 @@ export default function VendorDashboard() {
         {/* Sales Activity Card */}
         <Card className="md:col-span-2 border-slate-800 bg-[#060a17]/50 backdrop-blur-md">
           <CardHeader>
-            <CardTitle className="text-white text-lg font-bold">Store Insights</CardTitle>
+            <CardTitle className="text-white text-lg font-bold">Revenue Insights</CardTitle>
             <CardDescription className="text-slate-400">
-              Overview of your recent product growth and metrics.
+              Overview of your recent store revenue and sales performance.
             </CardDescription>
           </CardHeader>
-          <CardContent className="h-64 flex flex-col justify-between">
-            <div className="flex items-center justify-center flex-1 text-slate-500 border border-dashed border-slate-800 rounded-lg bg-slate-950/20">
-              <div className="text-center p-4">
-                <TrendingUp className="mx-auto h-8 w-8 text-slate-700 mb-2" />
-                <p className="text-sm font-medium text-slate-400">Analytics Visualization</p>
-                <p className="text-xs text-slate-500 mt-1 max-w-xs">
-                  Detailed analytics charts and trends will become populated once you record more order sales.
-                </p>
-              </div>
-            </div>
+          <CardContent className="h-80 pb-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={mockChartData}
+                margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+              >
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                <XAxis 
+                  dataKey="name" 
+                  stroke="#64748b" 
+                  fontSize={12} 
+                  tickLine={false} 
+                  axisLine={false} 
+                  dy={10}
+                />
+                <YAxis 
+                  stroke="#64748b" 
+                  fontSize={12} 
+                  tickLine={false} 
+                  axisLine={false}
+                  tickFormatter={(value) => `₹${value / 1000}k`}
+                />
+                <RechartsTooltip 
+                  contentStyle={{ 
+                    backgroundColor: '#0f172a', 
+                    borderColor: '#1e293b',
+                    borderRadius: '8px',
+                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
+                  }}
+                  itemStyle={{ color: '#e2e8f0' }}
+                  labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
+                  formatter={(value: number) => [formatCurrency(value), 'Revenue']}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#6366f1" 
+                  strokeWidth={3}
+                  fillOpacity={1} 
+                  fill="url(#colorRevenue)" 
+                  activeDot={{ r: 6, strokeWidth: 0, fill: '#818cf8' }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
 
