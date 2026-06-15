@@ -62,4 +62,18 @@ export const couponsApi = {
 
         return res.data;
     },
+    async applyCoupon(
+        code: string,
+        cartTotal: number
+    ) {
+        const res = await api.post(
+            "/coupons/apply",
+            {
+                code,
+                cartTotal,
+            }
+        );
+
+        return res.data.data;
+    }
 };

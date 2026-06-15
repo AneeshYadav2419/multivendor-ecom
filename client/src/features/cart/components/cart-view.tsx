@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import { api } from "@/lib/api/axios";
+import { toast } from "sonner";
 
 import {
   Loader2,
@@ -30,6 +32,9 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 
+
+
+
 export const CartView: React.FC = () => {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
@@ -38,6 +43,15 @@ export const CartView: React.FC = () => {
   const updateItem = useUpdateCartItemMutation();
   const removeItem = useRemoveCartItemMutation();
   const clearCart = useClearCartMutation();
+  const [couponCode, setCouponCode] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+
+  const [discount, setDiscount] = useState(0);
+  const [finalTotal, setFinalTotal] = useState(0);
+
+  const [appliedCoupon, setAppliedCoupon] =
+    useState<any>(null);
+
 
   if (!user || !accessToken) {
     return (
@@ -105,9 +119,92 @@ export const CartView: React.FC = () => {
 
   const items = cart?.items ?? [];
   const total = cart?.totalAmount ?? 0;
+
+  useEffect(() => {
+    const checkoutData =
+      localStorage.getItem(
+        "checkoutTotal"
+      );
+
+    if (checkoutData) {
+      console.log(
+        JSON.parse(checkoutData)
+      );
+    }
+  }, []);
+
+
   useEffect(() => {
     setFinalTotal(total);
   }, [total]);
+
+  useEffect(() => {
+    const storedCoupon =
+      localStorage.getItem("appliedCoupon");
+
+    if (storedCoupon) {
+      const coupon =
+        JSON.parse(storedCoupon);
+
+      setAppliedCoupon(coupon);
+      setDiscount(coupon.discountAmount);
+      setFinalTotal(coupon.finalAmount);
+    }
+  }, []);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error("Enter coupon code");
+      return;
+    }
+
+    try {
+      setCouponLoading(true);
+
+      const res = await api.post(
+        "/coupons/apply",
+        {
+          code: couponCode,
+          cartTotal: total,
+        }
+      );
+
+      const couponData =
+        res.data.data;
+
+      setDiscount(
+        couponData.discountAmount
+      );
+
+      setFinalTotal(
+        couponData.finalAmount
+      );
+
+      setAppliedCoupon(
+        couponData
+      );
+
+      localStorage.setItem(
+        "appliedCoupon",
+        JSON.stringify(
+          couponData
+        )
+      );
+
+      toast.success(
+        `Coupon applied! Saved ${formatPrice(
+          couponData.discountAmount
+        )}`
+      );
+    } catch (error: any) {
+      toast.error(
+        error?.response?.data?.message ||
+        "Invalid coupon"
+      );
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   if (items.length === 0) {
     return (
@@ -276,6 +373,13 @@ export const CartView: React.FC = () => {
                   <span>Tax</span>
                   <span className="text-white font-medium">₹0.00</span>
                 </div>
+                {discount > 0 && (
+                  <div className="flex justify-between text-emerald-400">
+                    <span>Discount</span>
+                    <span>-{formatPrice(discount)}</span>
+                  </div>
+                )}
+
               </div>
 
               {/* Coupon Section */}
@@ -291,25 +395,100 @@ export const CartView: React.FC = () => {
                       className="pl-9 h-10 bg-slate-950/50 border-white/10 text-white rounded-xl focus-visible:ring-indigo-500"
                     />
                   </div>
-                  <Button variant="secondary" className="h-10 rounded-xl bg-white/10 hover:bg-white/20 text-white border-none">
+                  {/* <Button variant="secondary" className="h-10 rounded-xl bg-white/10 hover:bg-white/20 text-white border-none">
                     Apply
+                  </Button> */}
+                  <Button
+                    variant="secondary"
+                    onClick={handleApplyCoupon}
+                    disabled={couponLoading}
+                    className="h-10 rounded-xl bg-white/10 hover:bg-white/20 text-white border-none"
+                  >
+                    {couponLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Apply"
+                    )}
                   </Button>
+
                 </div>
+                {/* {appliedCoupon && (
+                  <div className="mt-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
+                    Coupon "{appliedCoupon.code}" applied successfully
+                  </div>
+                )} */}
+                {appliedCoupon && (
+                  <div className="mt-3 flex items-center justify-between rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-400">
+                    <span>
+                      Coupon "{appliedCoupon.code}" applied successfully
+                    </span>
+
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 text-red-400 hover:text-red-300"
+                      onClick={() => {
+                        setAppliedCoupon(null);
+                        setDiscount(0);
+                        setFinalTotal(total);
+                        setCouponCode("");
+
+                        localStorage.removeItem(
+                          "appliedCoupon"
+                        );
+
+                        toast.success(
+                          "Coupon removed"
+                        );
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                )}
               </div>
 
               <Separator className="my-6 bg-white/10" />
 
+
               <div className="flex justify-between items-end mb-8">
                 <div>
-                  <span className="block text-base font-medium text-slate-300">Total</span>
-                  <span className="text-xs text-slate-500">Including all taxes</span>
+                  <span className="block text-base font-medium text-slate-300">
+                    Total
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    Including all taxes
+                  </span>
                 </div>
-                <span className="text-3xl font-extrabold text-white">{formatPrice(total)}</span>
+
+                <div className="text-right">
+                  {discount > 0 && (
+                    <div className="text-sm text-slate-500 line-through">
+                      {formatPrice(total)}
+                    </div>
+                  )}
+
+                  <div className="text-3xl font-extrabold text-white">
+                    {formatPrice(finalTotal)}
+                  </div>
+                </div>
               </div>
 
               <Button
                 className="group w-full h-14 rounded-2xl bg-white text-lg font-semibold text-slate-950 hover:bg-slate-200 transition-all hover:scale-[1.02] shadow-[0_0_20px_rgba(255,255,255,0.1)]"
-                onClick={() => router.push("/shipping")}
+                onClick={() => {
+                  localStorage.setItem(
+                    "checkoutTotal",
+                    JSON.stringify({
+                      subtotal: total,
+                      discount,
+                      finalTotal,
+                      coupon: appliedCoupon,
+                    })
+                  );
+
+                  router.push("/shipping");
+                }}
               >
                 Proceed to Checkout
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
