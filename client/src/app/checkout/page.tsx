@@ -1,201 +1,24 @@
-
-// "use client";
-
-// import { useEffect, useState } from "react";
-// import { useRouter } from "next/navigation";
-// import { Construction } from "lucide-react";
-// import { api } from "@/lib/api/axios";
-
-// export default function CheckoutPage() {
-//   const router = useRouter();
-
-//   const [loading, setLoading] = useState(true);
-//   const [cart, setCart] = useState<any>(null);
-
-//   // =========================
-//   // 1. LOAD CART
-//   // =========================
-
-//   useEffect(() => {
-//     console.log(
-//       "LOCAL STORAGE ORDER ID =",
-//       localStorage.getItem("dbOrderId")
-//     );
-//   }, []);
-
-//   useEffect(() => {
-//     async function fetchCart() {
-//       try {
-//         const res = await api.get("/cart");
-//         console.log("CART DATA:", res.data);
-//         setCart(res.data);
-//       } catch (err) {
-//         console.error("Cart error:", err);
-//       }
-//     }
-
-//     fetchCart();
-//   }, []);
-
-//   // =========================
-//   // 2. INIT PAYMENT
-//   // =========================
-//   useEffect(() => {
-//     if (!cart?.data?.totalAmount) return;
-
-//     //let dbOrderId: string; // 🔥 IMPORTANT FIX
-
-//     async function initPayment() {
-//       try {
-//         console.log("Checkout started...");
-//         const dbOrderId = localStorage.getItem("dbOrderId");
-//         const amount = localStorage.getItem("orderAmount");
-
-//         // =========================
-//         // CREATE ORDER
-//         // =========================
-//         const res = await api.post("/payments/create-order", {
-//           // amount: cart.data.totalAmount,
-//           amount: Number(amount),
-//         });
-
-//         const data = res.data;
-
-//         console.log("ORDER DATA:", data);
-
-//         if (!data?.order?.id) {
-//           alert("Order not created");
-//           return;
-//         }
-//         const dbOrderId = localStorage.getItem("dbOrderId");
-
-//         console.log("DB ORDER FROM STORAGE =", dbOrderId);
-
-//         if (!dbOrderId) {
-//           alert("Order not found");
-//           router.push("/shipping");
-//           return;
-//         }
-
-//         // dbOrderId = data.order.id; // 🔥 SAVE DB ORDER ID
-
-//         // =========================
-//         // CHECK RAZORPAY SDK
-//         // =========================
-//         if (!(window as any).Razorpay) {
-//           alert("Razorpay SDK not loaded");
-//           return;
-//         }
-
-//         // =========================
-//         // RAZORPAY OPTIONS
-//         // =========================
-//         const options = {
-//           key: data.razorpayKey,
-//           amount: data.order.amount,
-//           currency: data.order.currency,
-//           name: "My Store",
-//           description: "Order Payment",
-//           order_id: data.order.id,
-
-//           handler: async function (response: any) {
-//             console.log("PAYMENT SUCCESS:", response);
-//             console.log("VERIFY PAYLOAD", {
-//               orderId: dbOrderId,
-
-//               razorpay_order_id: response.razorpay_order_id,
-//               razorpay_payment_id: response.razorpay_payment_id,
-//               razorpay_signature: response.razorpay_signature,
-//             });
-
-//             console.log("LOCAL STORAGE ORDER =", localStorage.getItem("dbOrderId"));
-
-//             try {
-//               // =========================
-//               // VERIFY PAYMENT (FIXED)
-//               // =========================
-//               const verifyRes = await api.post("/payments/verify", {
-//                 orderId: dbOrderId, // 🔥 FIXED (NO UNDEFINED)
-
-//                 razorpay_order_id: response.razorpay_order_id,
-//                 razorpay_payment_id: response.razorpay_payment_id,
-//                 razorpay_signature: response.razorpay_signature,
-//               });
-
-//               console.log("DB ORDER ID =", dbOrderId);
-//               console.log("RAZORPAY ORDER ID =", response.razorpay_order_id);
-
-//               const verifyData = verifyRes.data;
-
-//               console.log("VERIFY RESPONSE:", verifyData);
-
-//               if (verifyData.success) {
-//                 router.push("/success");
-//               } else {
-//                 alert("Payment verification failed");
-//               }
-//             } catch (err: any) {
-//               console.error("Verify error response:", err?.response?.data);
-//               console.error("Verify error:", err);
-//               alert(JSON.stringify(err?.response?.data));
-//             }
-//           },
-
-//           theme: {
-//             color: "#528FF0",
-//           },
-//         };
-
-//         const rzp = new (window as any).Razorpay(options);
-
-//         rzp.on("payment.failed", function (response: any) {
-//           console.log("PAYMENT FAILED:", response);
-//           alert("Payment Failed");
-//         });
-
-//         rzp.open();
-
-//         setLoading(false);
-//       } catch (err) {
-//         console.error("Checkout error:", err);
-//         alert("Something went wrong");
-//       }
-//     }
-
-//     initPayment();
-//   }, [cart, router]);
-
-//   return (
-//     <main className="flex min-h-[60vh] flex-col items-center justify-center text-center">
-//       <Construction className="h-12 w-12 text-indigo-400" />
-//       <p className="mt-4 text-white">
-//         {loading ? "Initializing payment..." : "Redirecting..."}
-//       </p>
-//     </main>
-//   );
-// }
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Construction } from "lucide-react";
+import { Loader2, ShieldCheck, Lock, CheckCircle2, ChevronRight } from "lucide-react";
 import { api } from "@/lib/api/axios";
+import { motion } from "framer-motion";
+import { formatPrice } from "@/features/products/lib/format-price";
 
 export default function CheckoutPage() {
   const router = useRouter();
 
   const [loading, setLoading] = useState(true);
+  const [statusText, setStatusText] = useState("Securing connection...");
+  const [amount, setAmount] = useState<number | null>(null);
 
   useEffect(() => {
-    console.log(
-      "DB ORDER ID =",
-      localStorage.getItem("dbOrderId")
-    );
-
-    console.log(
-      "ORDER AMOUNT =",
-      localStorage.getItem("orderAmount")
-    );
+    const orderAmount = localStorage.getItem("orderAmount");
+    if (orderAmount) {
+      setAmount(Number(orderAmount));
+    }
   }, []);
 
   useEffect(() => {
@@ -206,114 +29,80 @@ export default function CheckoutPage() {
         const dbOrderId = localStorage.getItem("dbOrderId");
         const orderAmount = localStorage.getItem("orderAmount");
 
-        console.log("DB ORDER ID =", dbOrderId);
-        console.log("ORDER AMOUNT =", orderAmount);
-        console.log("RAZORPAY SDK =", !!(window as any).Razorpay);
-
-        // =========================
-        // VALIDATION
-        // =========================
-
-        if (!dbOrderId) {
-          alert("Order ID not found");
+        if (!dbOrderId || !orderAmount) {
+          alert("Order details not found. Returning to shipping.");
           router.push("/shipping");
           return;
         }
-
-        if (!orderAmount) {
-          alert("Order amount not found");
-          router.push("/shipping");
-          return;
-        }
-
-        // =========================
-        // CHECK SDK
-        // =========================
 
         if (!(window as any).Razorpay) {
           alert("Razorpay SDK not loaded");
+          router.push("/shipping");
           return;
         }
 
-        // =========================
-        // CREATE RAZORPAY ORDER
-        // =========================
+        setStatusText("Creating secure payment session...");
 
+        // CREATE RAZORPAY ORDER
         const res = await api.post("/payments/create-order", {
           amount: Number(orderAmount),
         });
 
-        console.log("CREATE ORDER RESPONSE =", res.data);
-
         const data = res.data;
 
         if (!data?.order?.id) {
-          alert("Razorpay order creation failed");
+          alert("Payment gateway initialization failed");
+          router.push("/shipping");
           return;
         }
 
-        // =========================
-        // OPEN RAZORPAY
-        // =========================
+        setStatusText("Awaiting payment completion...");
 
+        // OPEN RAZORPAY
         const options = {
           key: data.razorpayKey,
-
           amount: data.order.amount,
-
           currency: data.order.currency,
-
-          name: "Aura Market",
-
-          description: "Order Payment",
-
+          name: "AuraMarket",
+          description: "Secure Order Payment",
           order_id: data.order.id,
 
           handler: async function (response: any) {
             try {
-              console.log("PAYMENT SUCCESS =", response);
-
-              console.log("VERIFY PAYLOAD =", {
-                orderId: dbOrderId,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature,
-              });
-
+              setStatusText("Verifying payment...");
+              
               const verifyRes = await api.post("/payments/verify", {
                 orderId: dbOrderId,
-
                 razorpay_order_id: response.razorpay_order_id,
-
                 razorpay_payment_id: response.razorpay_payment_id,
-
                 razorpay_signature: response.razorpay_signature,
               });
 
-              console.log("VERIFY RESPONSE =", verifyRes.data);
-
               if (verifyRes.data.success) {
+                setStatusText("Payment successful! Redirecting...");
                 localStorage.removeItem("dbOrderId");
                 localStorage.removeItem("orderAmount");
-
-                router.push("/success");
+                setTimeout(() => router.push("/success"), 500);
               } else {
                 alert("Payment verification failed");
+                router.push("/shipping");
               }
             } catch (err: any) {
               console.error("VERIFY ERROR =", err);
-              console.error("VERIFY RESPONSE =", err?.response?.data);
-
-              alert(
-                err?.response?.data?.message ||
-                "Payment verification failed"
-              );
+              alert(err?.response?.data?.message || "Payment verification failed");
+              router.push("/shipping");
             }
           },
 
           theme: {
-            color: "#528FF0",
+            color: "#4f46e5", // Indigo 600
           },
+          modal: {
+            ondismiss: function() {
+              setStatusText("Payment cancelled.");
+              setTimeout(() => router.push("/shipping"), 1000);
+            }
+          }
         };
 
         const rzp = new (window as any).Razorpay(options);
@@ -321,19 +110,19 @@ export default function CheckoutPage() {
         rzp.on("payment.failed", function (response: any) {
           console.error("PAYMENT FAILED =", response);
           alert("Payment Failed");
+          router.push("/shipping");
         });
 
-        rzp.open();
+        // Add slight delay for UI polish
+        setTimeout(() => {
+          rzp.open();
+          setLoading(false);
+        }, 1500);
 
-        setLoading(false);
       } catch (err: any) {
         console.error("CHECKOUT ERROR =", err);
-        console.error("CHECKOUT RESPONSE =", err?.response?.data);
-
-        alert(
-          err?.response?.data?.message ||
-          "Unable to initialize payment"
-        );
+        alert(err?.response?.data?.message || "Unable to initialize payment");
+        router.push("/shipping");
       }
     }
 
@@ -341,14 +130,57 @@ export default function CheckoutPage() {
   }, [router]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center text-center">
-      <Construction className="h-12 w-12 text-indigo-400" />
+    <main className="min-h-screen bg-[#020617] selection:bg-indigo-500/30">
+      
+      {/* Top Navbar specifically for Checkout */}
+      <div className="border-b border-white/5 bg-slate-950/50 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          <span className="text-xl font-bold text-white tracking-tight">AuraMarket</span>
+          <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
+             <span className="text-white flex items-center gap-1"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Cart</span>
+             <ChevronRight className="h-4 w-4" />
+             <span className="text-white flex items-center gap-1"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Information</span>
+             <ChevronRight className="h-4 w-4" />
+             <span className="text-indigo-400 font-semibold border-b-2 border-indigo-400 pb-1">Payment</span>
+          </div>
+        </div>
+      </div>
 
-      <p className="mt-4 text-white text-lg">
-        {loading
-          ? "Initializing payment..."
-          : "Opening Razorpay..."}
-      </p>
+      <div className="flex flex-col items-center justify-center pt-32 px-4">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md rounded-3xl border border-white/10 bg-slate-900/50 p-10 text-center backdrop-blur-xl shadow-2xl relative overflow-hidden"
+        >
+          {/* Subtle gradient background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/10 via-transparent to-transparent opacity-50" />
+          
+          <div className="relative z-10 flex flex-col items-center">
+            <div className="mb-8 relative flex h-24 w-24 items-center justify-center rounded-full bg-indigo-500/10">
+               <div className="absolute inset-0 rounded-full border-t-2 border-indigo-500 animate-spin" />
+               <Lock className="h-10 w-10 text-indigo-400" />
+            </div>
+            
+            <h1 className="text-2xl font-bold text-white mb-2">Secure Checkout</h1>
+            
+            {amount && (
+              <p className="text-3xl font-extrabold text-white my-6">
+                {formatPrice(amount)}
+              </p>
+            )}
+
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-950/50 border border-white/5 mb-8">
+               <Loader2 className="h-4 w-4 text-indigo-400 animate-spin" />
+               <span className="text-sm font-medium text-slate-300">{statusText}</span>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <ShieldCheck className="h-4 w-4 text-emerald-500" />
+              <span>Payments are 256-bit SSL encrypted.</span>
+            </div>
+          </div>
+        </motion.div>
+      </div>
     </main>
   );
 }
