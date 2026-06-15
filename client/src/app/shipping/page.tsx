@@ -1,6 +1,5 @@
 "use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api/axios";
 import { Loader2, Truck, CreditCard, ChevronRight, CheckCircle2, ShieldCheck } from "lucide-react";
@@ -61,9 +60,25 @@ export default function ShippingPage() {
 
     try {
       setLoading(true);
-      const res = await api.post("/orders", form);
+      const coupon = localStorage.getItem(
+        "appliedCoupon"
+      );
+
+      const appliedCoupon = coupon
+        ? JSON.parse(coupon)
+        : null;
+
+      const payload = {
+        ...form,
+        couponCode: appliedCoupon?.code,
+      };
+
+      console.log("ORDER PAYLOAD", payload);
+
+      const res = await api.post("/orders", payload);
+
       const order = res.data.data;
-      
+
       localStorage.setItem("dbOrderId", order.id);
       localStorage.setItem("orderAmount", String(order.totalAmount));
 
@@ -77,27 +92,48 @@ export default function ShippingPage() {
   };
 
   const total = cart?.totalAmount ?? 0;
+  const [discount, setDiscount] = useState(0);
+  const [finalTotal, setFinalTotal] = useState(0);
+
+  useEffect(() => {
+    const coupon =
+      localStorage.getItem("appliedCoupon");
+
+    if (coupon) {
+      const parsed = JSON.parse(coupon);
+
+      setDiscount(
+        parsed.discountAmount
+      );
+
+      setFinalTotal(
+        parsed.finalAmount
+      );
+    } else {
+      setFinalTotal(total);
+    }
+  }, [total]);
 
   return (
     <main className="min-h-screen bg-[#020617] selection:bg-indigo-500/30">
-      
+
       {/* Top Navbar specifically for Checkout */}
       <div className="border-b border-white/5 bg-slate-950/50 backdrop-blur-xl">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <span className="text-xl font-bold text-white tracking-tight">AuraMarket</span>
           <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-             <span className="text-white flex items-center gap-1"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Cart</span>
-             <ChevronRight className="h-4 w-4" />
-             <span className="text-indigo-400 font-semibold border-b-2 border-indigo-400 pb-1">Information</span>
-             <ChevronRight className="h-4 w-4" />
-             <span>Payment</span>
+            <span className="text-white flex items-center gap-1"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Cart</span>
+            <ChevronRight className="h-4 w-4" />
+            <span className="text-indigo-400 font-semibold border-b-2 border-indigo-400 pb-1">Information</span>
+            <ChevronRight className="h-4 w-4" />
+            <span>Payment</span>
           </div>
         </div>
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-12 lg:grid-cols-12">
-          
+
           {/* Left Form Section */}
           <div className="lg:col-span-7 xl:col-span-8">
             <div className="mb-8">
@@ -106,11 +142,11 @@ export default function ShippingPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-8">
-              
+
               <div className="rounded-2xl border border-white/5 bg-slate-900/40 p-6 backdrop-blur-sm space-y-6">
                 <div className="flex items-center gap-3 mb-2 border-b border-white/5 pb-4">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-400">
-                     <Truck className="h-4 w-4" />
+                    <Truck className="h-4 w-4" />
                   </div>
                   <h2 className="text-lg font-semibold text-white">Delivery Address</h2>
                 </div>
@@ -211,11 +247,11 @@ export default function ShippingPage() {
               <div className="rounded-2xl border border-white/5 bg-slate-900/40 p-6 backdrop-blur-sm space-y-6">
                 <div className="flex items-center gap-3 mb-2 border-b border-white/5 pb-4">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-400">
-                     <CreditCard className="h-4 w-4" />
+                    <CreditCard className="h-4 w-4" />
                   </div>
                   <h2 className="text-lg font-semibold text-white">Payment Method</h2>
                 </div>
-                
+
                 <div className="space-y-1">
                   <select
                     name="paymentMethod"
@@ -228,7 +264,7 @@ export default function ShippingPage() {
                     <option value="COD">Cash on Delivery (if available)</option>
                   </select>
                   <p className="text-xs text-slate-500 mt-2 ml-1 flex items-center gap-1">
-                     <ShieldCheck className="h-3 w-3 text-emerald-500" /> All transactions are secure and encrypted.
+                    <ShieldCheck className="h-3 w-3 text-emerald-500" /> All transactions are secure and encrypted.
                   </p>
                 </div>
               </div>
@@ -256,53 +292,65 @@ export default function ShippingPage() {
           {/* Right Sidebar - Order Summary */}
           <div className="lg:col-span-5 xl:col-span-4">
             <div className="sticky top-24 rounded-3xl border border-white/10 bg-gradient-to-b from-slate-900/80 to-slate-900/30 p-8 backdrop-blur-xl shadow-2xl">
-               <h2 className="text-xl font-bold text-white mb-6">Order Summary</h2>
-               
-               {cartLoading ? (
-                 <div className="animate-pulse space-y-4">
-                   <div className="h-4 bg-slate-800 rounded w-full"></div>
-                   <div className="h-4 bg-slate-800 rounded w-2/3"></div>
-                 </div>
-               ) : (
-                 <>
-                   <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar mb-6">
-                     {cart?.items?.map((item) => (
-                       <div key={item.id} className="flex items-center gap-4">
-                         <div className="relative h-16 w-16 rounded-xl bg-slate-950 overflow-hidden border border-white/5 shrink-0">
-                            {/* Assuming item.product.images[0] exists, fallback omitted for brevity */}
-                            <img src={item.product.images?.[0] || "/file.svg"} alt={item.product.name} className="h-full w-full object-cover" />
-                            <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-slate-700/80 text-[10px] font-bold text-white backdrop-blur-sm z-10 border border-white/10">{item.quantity}</span>
-                         </div>
-                         <div className="flex-1 min-w-0">
-                           <p className="text-sm font-medium text-white truncate">{item.product.name}</p>
-                           <p className="text-xs text-slate-500 mt-1">{item.product.vendor?.storeName}</p>
-                         </div>
-                         <p className="text-sm font-semibold text-white">
-                           {formatPrice((typeof item.product.price === "string" ? parseFloat(item.product.price) : item.product.price) * item.quantity)}
-                         </p>
-                       </div>
-                     ))}
-                   </div>
+              <h2 className="text-xl font-bold text-white mb-6">Order Summary</h2>
 
-                   <div className="space-y-3 text-sm border-t border-white/10 pt-6 mb-6">
-                     <div className="flex justify-between text-slate-400">
-                       <span>Subtotal</span>
-                       <span className="text-white font-medium">{formatPrice(total)}</span>
-                     </div>
-                     <div className="flex justify-between text-slate-400">
-                       <span>Shipping</span>
-                       <span className="text-emerald-400 font-medium">Free</span>
-                     </div>
-                   </div>
+              {cartLoading ? (
+                <div className="animate-pulse space-y-4">
+                  <div className="h-4 bg-slate-800 rounded w-full"></div>
+                  <div className="h-4 bg-slate-800 rounded w-2/3"></div>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar mb-6">
+                    {cart?.items?.map((item) => (
+                      <div key={item.id} className="flex items-center gap-4">
+                        <div className="relative h-16 w-16 rounded-xl bg-slate-950 overflow-hidden border border-white/5 shrink-0">
+                          {/* Assuming item.product.images[0] exists, fallback omitted for brevity */}
+                          <img src={item.product.images?.[0] || "/file.svg"} alt={item.product.name} className="h-full w-full object-cover" />
+                          <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-slate-700/80 text-[10px] font-bold text-white backdrop-blur-sm z-10 border border-white/10">{item.quantity}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-white truncate">{item.product.name}</p>
+                          <p className="text-xs text-slate-500 mt-1">{item.product.vendor?.storeName}</p>
+                        </div>
+                        <p className="text-sm font-semibold text-white">
+                          {formatPrice((typeof item.product.price === "string" ? parseFloat(item.product.price) : item.product.price) * item.quantity)}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
 
-                   <div className="flex justify-between items-end border-t border-white/10 pt-6">
-                     <div>
-                       <span className="block text-base font-medium text-slate-300">Total</span>
-                     </div>
-                     <span className="text-3xl font-extrabold text-white">{formatPrice(total)}</span>
-                   </div>
-                 </>
-               )}
+                  <div className="space-y-3 text-sm border-t border-white/10 pt-6 mb-6">
+                    <div className="flex justify-between text-slate-400">
+                      <span>Subtotal</span>
+                      <span className="text-white font-medium">{formatPrice(total)}</span>
+                    </div>
+                    <div className="flex justify-between text-slate-400">
+                      <span>Shipping</span>
+                      <span className="text-emerald-400 font-medium">Free</span>
+                    </div>
+                    {discount > 0 && (
+                      <div className="flex justify-between text-emerald-400">
+                        <span>Discount</span>
+                        <span>
+                          -{formatPrice(discount)}
+                        </span>
+                      </div>
+                    )}
+
+                  </div>
+
+                  <div className="flex justify-between items-end border-t border-white/10 pt-6">
+                    <div>
+                      <span className="block text-base font-medium text-slate-300">Total</span>
+                    </div>
+                    {/* <span className="text-3xl font-extrabold text-white">{formatPrice(total)}</span> */}
+                    <span className="text-3xl font-extrabold text-white">
+                      {formatPrice(finalTotal)}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
