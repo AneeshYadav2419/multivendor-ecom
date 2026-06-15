@@ -225,7 +225,12 @@ import type { PlaceOrderInput } from "./order.types.js";
 
 /**
  * PLACE ORDER SERVICE (OPTIMIZED)
+ * 
  */
+
+let totalAmount = 0;
+let discountAmount = 0;
+let finalAmount = 0;
 export const placeOrderService = async (
     userId: string,
     data: PlaceOrderInput
@@ -240,7 +245,12 @@ export const placeOrderService = async (
         country,
         pincode,
         paymentMethod,
+        couponCode,
     } = data;
+
+    console.log("COUPON RECEIVED:", couponCode);
+
+
 
     // 1. Get cart
     const cart = await prisma.cart.findUnique({
@@ -282,14 +292,54 @@ export const placeOrderService = async (
 
         totalAmount += Number(product.price) * item.quantity;
     }
+    if (couponCode) {
+        const coupon =
+            await prisma.coupon.findFirst({
+                where: {
+                    code: couponCode,
+                    isActive: true,
+                },
+            });
+
+        if (coupon) {
+            if (
+                coupon.discountType ===
+                "PERCENTAGE"
+            ) {
+                discountAmount =
+                    (totalAmount *
+                        coupon.discountValue) /
+                    100;
+            }
+
+            if (
+                coupon.discountType ===
+                "FIXED"
+            ) {
+                discountAmount =
+                    coupon.discountValue;
+            }
+        }
+    }
+
+    finalAmount =
+        totalAmount - discountAmount;
+
+    console.log("TOTAL:", totalAmount);
+    console.log("DISCOUNT:", discountAmount);
+    console.log("FINAL:", finalAmount);
+
+
 
     // 3. FAST TRANSACTION (optimized)
     const order = await prisma.$transaction(async (tx) => {
+        console.log("SAVING ORDER AMOUNT:", finalAmount);
         // 3.1 Create order (minimal include - FAST)
         const createdOrder = await tx.order.create({
+
             data: {
                 customerId: userId,
-                totalAmount,
+                totalAmount: finalAmount,
 
                 shippingName,
                 shippingPhone,

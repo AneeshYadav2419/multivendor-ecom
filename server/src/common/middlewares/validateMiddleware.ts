@@ -16,29 +16,30 @@ interface ValidatedRequestParts {
  */
 export const validate =
   (schema: ZodTypeAny) =>
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const validated = (await schema.parseAsync({
-        body: req.body,
-        query: req.query,
-        params: req.params,
-      })) as ValidatedRequestParts;
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const validated = (await schema.parseAsync({
+          body: req.body,
+          query: req.query,
+          params: req.params,
 
-      if (validated.body !== undefined) {
-        req.body = validated.body;
+        })) as ValidatedRequestParts;
+
+        if (validated.body !== undefined) {
+          req.body = validated.body;
+        }
+
+        // Express 5: req.query and req.params are read-only — store parsed values separately
+        if (validated.query !== undefined) {
+          req.validatedQuery = validated.query;
+        }
+
+        if (validated.params !== undefined) {
+          req.validatedParams = validated.params;
+        }
+
+        next();
+      } catch (error) {
+        next(error);
       }
-
-      // Express 5: req.query and req.params are read-only — store parsed values separately
-      if (validated.query !== undefined) {
-        req.validatedQuery = validated.query;
-      }
-
-      if (validated.params !== undefined) {
-        req.validatedParams = validated.params;
-      }
-
-      next();
-    } catch (error) {
-      next(error);
-    }
-  };
+    };

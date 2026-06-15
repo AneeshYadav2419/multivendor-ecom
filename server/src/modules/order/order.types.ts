@@ -13,4 +13,5 @@ export interface PlaceOrderInput {
     pincode: string;
 
     paymentMethod: PaymentMethod;
+    couponCode?: string;
 }

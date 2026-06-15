@@ -26,5 +26,6 @@ export const placeOrderSchema = z.object({
         pincode: z.string(),
 
         paymentMethod: z.enum(["COD", "CARD", "UPI"]),
+        couponCode: z.string().optional(),
     }),
 });
