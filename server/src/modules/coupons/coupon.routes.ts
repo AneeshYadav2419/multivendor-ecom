@@ -40,4 +40,9 @@ router.delete(
     "/:id",
     couponController.deleteCoupon
 );
+
+router.post(
+    "/apply",
+    couponController.applyCoupon
+);
 export default router;

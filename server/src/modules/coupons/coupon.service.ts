@@ -3,6 +3,7 @@ import { couponRepository }
 
 import { CreateCouponDto, UpdateCouponDto }
     from "./coupon.types.js";
+import prisma from "../../config/prismaClient.js";
 
 export const couponService = {
     async createCoupon(
@@ -66,5 +67,43 @@ export const couponService = {
     },
     async deleteCoupon(id: string) {
         return couponRepository.delete(id);
+    },
+    async applyCoupon(
+        code: string,
+        cartTotal: number
+    ) {
+        const coupon =
+            await prisma.coupon.findFirst({
+                where: {
+                    code,
+                    isActive: true,
+                },
+            });
+
+        if (!coupon) {
+            throw new Error("Invalid coupon");
+        }
+
+        let discountAmount = 0;
+
+        if (coupon.type === "PERCENTAGE") {
+            discountAmount =
+                (cartTotal * coupon.value) / 100;
+        }
+
+        if (coupon.type === "FIXED") {
+            discountAmount =
+                coupon.value;
+        }
+
+        const finalAmount =
+            cartTotal - discountAmount;
+
+        return {
+            code: coupon.code,
+            discountAmount,
+            finalAmount,
+        };
     }
+
 };

@@ -101,3 +101,19 @@ export const deleteCoupon = async (
         message: "Coupon deleted successfully",
     });
 };
+
+export const applyCoupon = async (
+    req: Request,
+    res: Response
+) => {
+    const result =
+        await couponService.applyCoupon(
+            req.body.code,
+            req.body.cartTotal
+        );
+
+    return res.status(200).json({
+        success: true,
+        data: result,
+    });
+};
