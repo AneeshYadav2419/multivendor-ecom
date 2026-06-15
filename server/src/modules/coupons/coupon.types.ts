@@ -9,9 +9,12 @@ export interface CreateCouponDto {
 
     usageLimit?: number;
 
-    startsAt?: Date;
-    // expiresAt?: Date;
-    expiresAt?: string;
+    // startsAt?: Date;
+    // // expiresAt?: Date;
+    // // expiresAt?: string;
+    // expiresAt?: Date | null;
+    startsAt?: string | Date | null;
+    expiresAt?: string | Date | null;
 }
 
 export interface UpdateCouponDto {
@@ -21,6 +24,9 @@ export interface UpdateCouponDto {
     discountValue?: number;
     minOrderAmount?: number;
     usageLimit?: number;
-    expiresAt?: Date | null;
+    // startsAt?: Date | null;
+    // expiresAt?: Date | null;
+    startsAt?: string | Date | null;
+    expiresAt?: string | Date | null;
     isActive?: boolean;
 }

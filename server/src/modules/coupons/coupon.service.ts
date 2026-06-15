@@ -11,6 +11,9 @@ export const couponService = {
     ) {
         return couponRepository.create({
             ...data,
+            startsAt: data.startsAt
+                ? new Date(data.startsAt)
+                : null,
             expiresAt: data.expiresAt
                 ? new Date(data.expiresAt)
                 : null,
@@ -72,6 +75,7 @@ export const couponService = {
         code: string,
         cartTotal: number
     ) {
+        console.log("INPUT CODE:", code);
         const coupon =
             await prisma.coupon.findFirst({
                 where: {
@@ -79,25 +83,78 @@ export const couponService = {
                     isActive: true,
                 },
             });
+        console.log("FOUND COUPON:", coupon);
 
         if (!coupon) {
-            throw new Error("Invalid coupon");
+            throw new Error(
+                "Invalid coupon"
+            );
+        }
+
+        if (
+            coupon.startsAt &&
+            new Date() < coupon.startsAt
+        ) {
+            throw new Error(
+                "Coupon is not active yet"
+            );
+        }
+
+        if (
+            coupon.expiresAt &&
+            new Date() > coupon.expiresAt
+        ) {
+            throw new Error(
+                "Coupon has expired"
+            );
+        }
+
+        if (
+            coupon.usageLimit &&
+            coupon.usedCount >=
+            coupon.usageLimit
+        ) {
+            throw new Error(
+                "Coupon usage limit reached"
+            );
+        }
+
+        if (
+            coupon.minOrderAmount &&
+            cartTotal <
+            coupon.minOrderAmount
+        ) {
+            throw new Error(
+                `Minimum order amount is ₹${coupon.minOrderAmount}`
+            );
         }
 
         let discountAmount = 0;
 
-        if (coupon.type === "PERCENTAGE") {
+        if (
+            coupon.discountType ===
+            "PERCENTAGE"
+        ) {
             discountAmount =
-                (cartTotal * coupon.value) / 100;
+                (cartTotal *
+                    coupon.discountValue) /
+                100;
         }
 
-        if (coupon.type === "FIXED") {
+        if (
+            coupon.discountType ===
+            "FIXED"
+        ) {
             discountAmount =
-                coupon.value;
+                coupon.discountValue;
         }
 
         const finalAmount =
-            cartTotal - discountAmount;
+            Math.max(
+                0,
+                cartTotal -
+                discountAmount
+            );
 
         return {
             code: coupon.code,

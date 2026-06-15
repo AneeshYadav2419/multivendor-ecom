@@ -50,5 +50,6 @@ export const registerRoutes = (app: Express): void => {
     "/api/admin/settings",
     settingsRoutes
   );
+  app.use("/api/coupons", couponRoutes);
 
 };
