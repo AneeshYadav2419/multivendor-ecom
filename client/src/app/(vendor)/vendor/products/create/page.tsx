@@ -9,7 +9,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import {
   ArrowLeft,
-  Plus,
   Trash2,
   Loader2,
   AlertCircle,
@@ -24,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { uploadImageToCloudinary } from "@/lib/cloudinary";
 
 // Zod validation schema matching backend createProductSchema
 const productFormSchema = z.object({
@@ -65,7 +65,8 @@ const DEMO_IMAGES = [
 export default function CreateProduct() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [imageInput, setImageInput] = useState("");
+
+  const [uploading, setUploading] = useState(false);
 
   // Fetch categories
   const { data: categoriesData, isLoading: isLoadingCategories, error: categoriesError } = useQuery({
@@ -80,7 +81,6 @@ export default function CreateProduct() {
     register,
     handleSubmit,
     control,
-    setValue,
     getValues,
     formState: { errors },
   } = useForm<ProductFormValues>({
@@ -116,17 +116,6 @@ export default function CreateProduct() {
 
   const onSubmit = (values: ProductFormValues) => {
     createMutation.mutate(values);
-  };
-
-  const handleAddImage = () => {
-    if (!imageInput) return;
-    try {
-      z.string().url().parse(imageInput);
-      appendImage(imageInput);
-      setImageInput("");
-    } catch {
-      toast.error("Please enter a valid image URL");
-    }
   };
 
   const handleAddDemoImage = () => {
@@ -291,8 +280,12 @@ export default function CreateProduct() {
             <Card className="border-slate-800 bg-[#060a17]/50 backdrop-blur-md">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div>
-                  <CardTitle className="text-white text-base">Media Link</CardTitle>
-                  <CardDescription className="text-slate-400">Provide product image URLs.</CardDescription>
+
+                  <CardTitle>Product Images</CardTitle>
+                  <CardDescription>
+                    Upload product images directly from your device.
+                  </CardDescription>
+
                 </div>
                 <Button
                   type="button"
@@ -307,22 +300,42 @@ export default function CreateProduct() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="image-input" className="text-slate-300 font-medium">Image URL</Label>
-                  <div className="flex gap-2">
+                  <div className="space-y-2">
+                    <Label className="text-slate-300 font-medium">
+                      Upload Product Images
+                    </Label>
+
                     <Input
-                      id="image-input"
-                      placeholder="https://example.com/image.jpg"
-                      value={imageInput}
-                      onChange={(e) => setImageInput(e.target.value)}
-                      className="border-slate-800 bg-[#020617]/50 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 text-slate-200"
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const files = e.target.files;
+
+                        if (!files?.length) return;
+
+                        setUploading(true);
+
+                        try {
+                          const uploadedUrls = await Promise.all(
+                            Array.from(files).map((file) =>
+                              uploadImageToCloudinary(file)
+                            )
+                          );
+
+                          uploadedUrls.forEach((url) => appendImage(url));
+
+                          toast.success(
+                            `${uploadedUrls.length} image(s) uploaded successfully`
+                          );
+                        } catch (error) {
+                          toast.error("Image upload failed");
+                        } finally {
+                          setUploading(false);
+                        }
+                      }}
+                      className="border-slate-800 bg-[#020617]/50"
                     />
-                    <Button
-                      type="button"
-                      onClick={handleAddImage}
-                      className="bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 px-3"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
                   </div>
                 </div>
 
@@ -393,10 +406,18 @@ export default function CreateProduct() {
           </Link>
           <Button
             type="submit"
-            disabled={createMutation.isPending}
+            disabled={
+              createMutation.isPending ||
+              uploading
+            }
             className="bg-indigo-600 hover:bg-indigo-500 text-white min-w-[120px] shadow-lg shadow-indigo-600/20"
           >
-            {createMutation.isPending ? (
+            {uploading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Uploading...
+              </>
+            ) : createMutation.isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Saving...
