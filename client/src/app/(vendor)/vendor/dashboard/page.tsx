@@ -3,14 +3,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { getVendorDashboardStats, VendorDashboardStats } from "@/lib/api/vendor";
 import { useAuthStore } from "@/store/useAuthStore";
-import { 
-  DollarSign, 
-  Package, 
-  ShoppingCart, 
-  CheckCircle2, 
-  Clock, 
-  ArrowUpRight, 
-  Plus, 
+import {
+  DollarSign,
+  Package,
+  ShoppingCart,
+  CheckCircle2,
+  Clock,
+  ArrowUpRight,
+  Plus,
   ShoppingBag,
   TrendingUp,
   AlertCircle
@@ -60,9 +60,9 @@ export default function VendorDashboard() {
         <p className="mt-2 text-sm text-slate-400 max-w-sm">
           There was an error retrieving your store analytics. Please check your connection or try again.
         </p>
-        <Button 
-          variant="outline" 
-          onClick={() => refetch()} 
+        <Button
+          variant="outline"
+          onClick={() => refetch()}
           className="mt-6 border-slate-800 bg-slate-900/50 hover:bg-slate-800 text-slate-300"
         >
           Try Again
@@ -243,39 +243,39 @@ export default function VendorDashboard() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                <XAxis 
-                  dataKey="name" 
-                  stroke="#64748b" 
-                  fontSize={12} 
-                  tickLine={false} 
-                  axisLine={false} 
+                <XAxis
+                  dataKey="name"
+                  stroke="#64748b"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
                   dy={10}
                 />
-                <YAxis 
-                  stroke="#64748b" 
-                  fontSize={12} 
-                  tickLine={false} 
+                <YAxis
+                  stroke="#64748b"
+                  fontSize={12}
+                  tickLine={false}
                   axisLine={false}
                   tickFormatter={(value) => `₹${value / 1000}k`}
                 />
-                <RechartsTooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#0f172a', 
+                <RechartsTooltip
+                  contentStyle={{
+                    backgroundColor: '#0f172a',
                     borderColor: '#1e293b',
                     borderRadius: '8px',
                     boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.5)'
                   }}
                   itemStyle={{ color: '#e2e8f0' }}
                   labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
-                  formatter={(value: number) => [formatCurrency(value), 'Revenue']}
+                formatter={(value: unknown) => formatCurrency(Number(value ?? 0))}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  stroke="#6366f1" 
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#6366f1"
                   strokeWidth={3}
-                  fillOpacity={1} 
-                  fill="url(#colorRevenue)" 
+                  fillOpacity={1}
+                  fill="url(#colorRevenue)"
                   activeDot={{ r: 6, strokeWidth: 0, fill: '#818cf8' }}
                 />
               </AreaChart>
