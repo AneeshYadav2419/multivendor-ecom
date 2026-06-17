@@ -63,7 +63,7 @@ export const GlassNavbar: React.FC = () => {
       console.log("Logout API failed (safe fallback)");
     }
     logout?.();
-    useWishlistStore.getState().clear?.();
+  useWishlistStore.setState({ ids: [] });
     setIsDropdownOpen(false);
     setIsMobileMenuOpen(false);
     router.push("/login");
