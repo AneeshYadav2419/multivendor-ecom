@@ -1,13 +1,22 @@
-import { useQuery }
-    from "@tanstack/react-query";
+// import { useQuery }
+//     from "@tanstack/react-query";
 
-import { settingsApi }
-    from "../api/settings.api";
+// import { settingsApi }
+//     from "../api/settings.api";
+
+// export const useSettings = () => {
+//     return useQuery({
+//         queryKey: ["settings"],
+//         queryFn:
+//             settingsApi.getSettings,
+//     });
+// };
+import { useQuery } from "@tanstack/react-query";
+import { settingsApi } from "../api/settings.api";
 
 export const useSettings = () => {
-    return useQuery({
-        queryKey: ["settings"],
-        queryFn:
-            settingsApi.getSettings,
-    });
+  return useQuery({
+    queryKey: ["settings"],
+    queryFn: settingsApi.getSettings,
+  });
 };

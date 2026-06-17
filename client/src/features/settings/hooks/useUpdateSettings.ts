@@ -1,27 +1,40 @@
-import {
-    useMutation,
-    useQueryClient,
-} from "@tanstack/react-query";
+// import {
+//     useMutation,
+//     useQueryClient,
+// } from "@tanstack/react-query";
 
-import { settingsApi }
-    from "../api/settings.api";
+// import { settingsApi }
+//     from "../api/settings.api";
 
-export const useUpdateSettings =
-    () => {
+// export const useUpdateSettings =
+//     () => {
 
-        const queryClient =
-            useQueryClient();
+//         const queryClient =
+//             useQueryClient();
 
-        return useMutation({
-            mutationFn:
-                settingsApi.updateSettings,
+//         return useMutation({
+//             mutationFn:
+//                 settingsApi.updateSettings,
 
-            onSuccess: () => {
-                queryClient.invalidateQueries({
-                    queryKey: [
-                        "settings",
-                    ],
-                });
-            },
-        });
-    };
+//             onSuccess: () => {
+//                 queryClient.invalidateQueries({
+//                     queryKey: [
+//                         "settings",
+//                     ],
+//                 });
+//             },
+//         });
+//     };
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { settingsApi } from "../api/settings.api";
+
+export const useUpdateSettings = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: settingsApi.updateSettings,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["settings"] });
+    },
+  });
+};
