@@ -96,19 +96,19 @@ export default function AdminOrdersPage() {
                     <div className="mt-4 space-y-2 text-sm">
                         <p>
                             <span className="text-slate-400">Customer:</span>{" "}
-                           {/* {selectedOrder.customer?.name} */}
+                        
                            {selectedOrder.customerName}
                         </p>
 
                         <p>
                             <span className="text-slate-400">Email:</span>{" "}
-                            {/* {selectedOrder.customer?.email} */}
+                
                             {selectedOrder.customerEmail}
                         </p>
 
                         <p>
                             <span className="text-slate-400">Status:</span>{" "}
-                            {/* {selectedOrder.status} */}
+                          
                               {selectedOrder.fulfillmentStatus}
                         </p>
 
