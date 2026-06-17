@@ -45,20 +45,12 @@
 // }
 "use client";
 
-import SettingsForm from "../components/SettingsForm";
-import SettingsSkeleton from "../components/SettingsSkeleton";
-import { useSettings } from "../hooks/useSettings";
+import SettingsForm from "@/features/settings/components/SettingsForm";
 
 export default function SettingsPage() {
-  const { data, isLoading } = useSettings();
-
-  if (isLoading) {
-    return <SettingsSkeleton />;
-  }
-
   return (
-    <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <SettingsForm defaultValues={data} />
+    <div className="p-6">
+      <SettingsForm />
     </div>
   );
 }
