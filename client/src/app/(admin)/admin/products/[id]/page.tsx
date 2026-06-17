@@ -274,7 +274,7 @@ export default function ProductDetailPage() {
 
                     {product.images?.length > 1 && (
                         <div className="grid grid-cols-4 gap-2">
-                            {product.images.map((image, index) => (
+                            {product.images?.map((image:string, index:number) => (
                                 <img
                                     key={index}
                                     src={image}
