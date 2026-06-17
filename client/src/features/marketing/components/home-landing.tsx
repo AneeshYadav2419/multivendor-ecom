@@ -1,5 +1,5 @@
 "use client";
-
+import { Variants } from "framer-motion";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import {
@@ -21,15 +21,35 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i: number) => ({
+// const fadeUp = {
+//   hidden: { opacity: 0, y: 30 },
+//   visible: (i: number) => ({
+//     opacity: 1,
+//     y: 0,
+//     transition: { delay: i * 0.1, duration: 0.7, ease: [0.16, 1, 0.3, 1] },
+//   }),
+// };
+const container: Variants = {
+  hidden: { opacity: 0 },
+  visible: {
     opacity: 1,
-    y: 0,
-    transition: { delay: i * 0.1, duration: 0.7, ease: [0.16, 1, 0.3, 1] },
-  }),
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
 };
 
+const item: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.7,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  },
+};
 const categories = [
   { name: "Electronics", icon: MonitorSmartphone, color: "from-blue-500/20 to-blue-500/5", border: "group-hover:border-blue-500/50" },
   { name: "Fashion", icon: Sparkles, color: "from-pink-500/20 to-pink-500/5", border: "group-hover:border-pink-500/50" },
@@ -80,7 +100,7 @@ export const HomeLanding: React.FC = () => {
               custom={0}
               initial="hidden"
               animate="visible"
-              variants={fadeUp}
+              variants={container}
               className="mb-8 inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/10 px-4 py-1.5 text-sm font-medium text-indigo-300 backdrop-blur-md shadow-[0_0_20px_rgba(99,102,241,0.1)]"
             >
               <Sparkles className="h-4 w-4" />
@@ -91,7 +111,7 @@ export const HomeLanding: React.FC = () => {
               custom={1}
               initial="hidden"
               animate="visible"
-              variants={fadeUp}
+              variants={container}
               className="max-w-4xl text-5xl font-extrabold tracking-tight sm:text-7xl lg:text-[5.5rem] lg:leading-[1.05]"
             >
               Elevate Your <br className="hidden sm:block" />
@@ -104,7 +124,7 @@ export const HomeLanding: React.FC = () => {
               custom={2}
               initial="hidden"
               animate="visible"
-              variants={fadeUp}
+              variants={container}
               className="mt-8 max-w-2xl text-lg leading-relaxed text-slate-400 sm:text-xl"
             >
               Discover curated products from premium independent brands. 
@@ -115,7 +135,7 @@ export const HomeLanding: React.FC = () => {
               custom={3}
               initial="hidden"
               animate="visible"
-              variants={fadeUp}
+              variants={container}
               className="mt-10 flex flex-wrap items-center justify-center gap-4"
             >
               <Button
