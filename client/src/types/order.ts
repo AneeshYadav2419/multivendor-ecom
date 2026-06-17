@@ -1,5 +1,6 @@
 export type PaymentStatus = "PAID" | "PENDING" | "FAILED";
 export type FulfillmentStatus =
+    | "PENDING"
     | "PROCESSING"
     | "SHIPPED"
     | "DELIVERED"
