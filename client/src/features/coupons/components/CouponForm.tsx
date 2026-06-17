@@ -3,38 +3,25 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-
+import { Resolver } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-const couponSchema = z.object({
-    code: z
-        .string()
-        .min(3, "Coupon code required")
-        .transform((value) =>
-            value.toUpperCase()
-        ),
 
-    description: z.string().optional(),
+export const couponSchema = z.object({
+  code: z.string().min(1),
 
-    discountType: z.enum([
-        "PERCENTAGE",
-        "FIXED",
-    ]),
+  description: z.string().optional(),
 
-    discountValue: z.coerce
-        .number()
-        .min(1),
+  discountType: z.enum(["PERCENTAGE", "FIXED"]),
 
-    minOrderAmount: z.coerce
-        .number()
-        .optional(),
+  discountValue: z.coerce.number(),
 
-    usageLimit: z.coerce
-        .number()
-        .optional(),
+  minOrderAmount: z.coerce.number().optional(),
 
-    expiresAt: z.string().optional(),
+  usageLimit: z.coerce.number().optional(),
+
+  expiresAt: z.string().optional(),
 });
 
 export type CouponFormValues =
@@ -52,19 +39,16 @@ export default function CouponForm({
     onSubmit,
     isLoading = false,
 }: Props) {
-    const {
-        register,
-        handleSubmit,
-        formState: { errors },
-    } = useForm<CouponFormValues>({
-        resolver:
-            zodResolver(couponSchema),
-
-        defaultValues: {
-            discountType:
-                "PERCENTAGE",
-        },
-    });
+ const {
+  register,
+  handleSubmit,
+  formState: { errors },
+} = useForm<CouponFormValues>({
+  resolver: zodResolver(couponSchema) as Resolver<CouponFormValues>,
+  defaultValues: {
+    discountType: "PERCENTAGE",
+  },
+});
 
     return (
         <form
