@@ -31,8 +31,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   const lowStock = product.stock > 0 && product.stock <= 5;
   
   // Dummy discount logic to showcase the badge for some items
+  
+  const price = Number(product.price);
   const hasDiscount = (index % 3) === 0; 
-  const originalPrice = hasDiscount ? (product.price * 1.2) : product.price;
+const originalPrice = hasDiscount ? price * 1.2 : price;
 
   return (
     <motion.div
@@ -134,7 +136,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
 
             <div className="mt-2 flex items-baseline gap-3">
               <p className="text-2xl font-bold tracking-tight text-white">
-                {formatPrice(product.price)}
+                {formatPrice(price)}
               </p>
               {hasDiscount && (
                 <p className="text-sm font-medium text-slate-500 line-through decoration-slate-600/50">
