@@ -38,7 +38,12 @@ export default function CategoriesPage() {
             </div>
 
             <CategoryTable
-                categories={categoriesData?.data || []}
+                categories={
+                    (categoriesData?.data || []).map((c) => ({
+                        ...c,
+                        description: c.description ?? null,
+                    }))
+                }
                 onDelete={deleteCategory}
             />
         </div>
