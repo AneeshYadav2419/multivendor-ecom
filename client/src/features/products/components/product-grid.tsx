@@ -10,6 +10,10 @@ import { Button } from "@/components/ui/button";
 
 interface ProductGridProps {
   params?: ProductQueryParams;
+  
+}
+interface ProductGridSkeletonProps {
+  count?: number;
 }
 
 export const ProductGrid: React.FC<ProductGridProps> = ({ params }) => {

@@ -12,10 +12,13 @@ export const ProductCardSkeleton: React.FC = () => (
   </div>
 );
 
-export const ProductGridSkeleton: React.FC = ({ count = 8 }: { count?: number }) => (
-  <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-    {Array.from({ length: count }).map((_, i) => (
-      <ProductCardSkeleton key={i} />
-    ))}
-  </div>
-);
+
+export const ProductGridSkeleton = ({ count = 8 }) => {
+  return (
+    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {Array.from({ length: count }).map((_, i) => (
+        <div key={i} className="h-72 rounded-xl bg-slate-800/30 animate-pulse" />
+      ))}
+    </div>
+  );
+};
