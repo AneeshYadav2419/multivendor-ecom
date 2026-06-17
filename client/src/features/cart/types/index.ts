@@ -5,6 +5,9 @@ export interface CartProductRef {
   images: string[];
   stock: number;
   slug: string;
+    vendor?: {
+    storeName: string;
+  };
 }
 
 export interface CartItem {
