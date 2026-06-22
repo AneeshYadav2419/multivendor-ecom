@@ -16,7 +16,30 @@
 
 <br/>
 
-![Platform Preview](https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=900&h=400&fit=crop)
+                                              **Home Page**
+
+<img width="1918" height="912" alt="Image" src="https://github.com/user-attachments/assets/9a02173d-4894-43c6-bcf8-43264c903988" />
+
+
+                                              **Product Listing**
+
+<img width="1918" height="906" alt="Image" src="https://github.com/user-attachments/assets/956e47a8-d634-409f-8c7c-ce4f8c26cc40" />
+
+                                            **Cart Page & Checkout Page**
+
+<img width="1918" height="911" alt="Image" src="https://github.com/user-attachments/assets/72f5b590-cc97-4a92-b817-4eead313a9e1" />
+
+                                             **Shipping Address Page**
+
+<img width="1907" height="900" alt="Image" src="https://github.com/user-attachments/assets/60381b24-2669-4cb5-b737-601414fd68ff" />
+
+                                                **Vendor Dashboard**
+
+<img width="1918" height="911" alt="Image" src="https://github.com/user-attachments/assets/b7762dfc-f54a-4d00-a78b-13e48bf0e54c" />
+
+                                                **Admin Dashboard**
+
+<img width="1918" height="915" alt="Image" src="https://github.com/user-attachments/assets/f3046cfd-5661-430f-b7b9-adf99ca52e19" />****
 
 </div>
 
