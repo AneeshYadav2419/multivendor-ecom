@@ -19,9 +19,19 @@ app.use(traceMiddleware);
 
 // Security Middleware
 app.use(helmet());
+// app.use(
+//   cors({
+//     origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+//     credentials: true,
+//   })
+// );
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:3000",
+    origin: [
+      process.env.CORS_ORIGIN || "http://localhost:3000",
+      "https://multivendor-ecom-xlm.vercel.app",
+      "https://multivendor-ecom-84rl.vercel.app",
+    ],
     credentials: true,
   })
 );
