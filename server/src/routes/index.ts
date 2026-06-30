@@ -18,6 +18,7 @@ import couponRoutes
   from "../modules/coupons/coupon.routes.js";
 import settingsRoutes
   from "../modules/settings/settings.routes.js";
+import wishlistRoutes from "../modules/wishlist/wishlist.routes.js";
 
 /**
  * Central route registry — single place to see all API mounts.
@@ -51,5 +52,6 @@ export const registerRoutes = (app: Express): void => {
     settingsRoutes
   );
   app.use("/api/coupons", couponRoutes);
+  app.use("/api/wishlist", wishlistRoutes);
 
 };

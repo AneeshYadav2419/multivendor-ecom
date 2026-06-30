@@ -16,6 +16,7 @@ model User {
   createdAt  DateTime           @default(now())
   updatedAt  DateTime           @updatedAt
   cart       Cart?
+  wishlist   Wishlist?
   orders     Order[]
   reviews    Review[]
   sessions   Session[]
@@ -84,6 +85,7 @@ model Product {
   updatedAt   DateTime      @updatedAt
   status      ProductStatus @default(DRAFT)
   cartItems   CartItem[]
+  wishlistItems WishlistItem[]
   orderItems  OrderItem[]
   category    Category      @relation(fields: [categoryId], references: [id])
   vendor      Vendor        @relation(fields: [vendorId], references: [id], onDelete: Cascade)
@@ -216,6 +218,25 @@ model Setting {
   maintenanceMode Boolean @default(false)
 
   updatedAt DateTime @updatedAt
+}
+model Wishlist {
+  id        String         @id @default(cuid())
+  userId    String         @unique
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     WishlistItem[]
+}
+
+model WishlistItem {
+  id         String   @id @default(cuid())
+  wishlistId String
+  productId  String
+  createdAt  DateTime @default(now())
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([wishlistId, productId])
 }
 
 enum Role {
