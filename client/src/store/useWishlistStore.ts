@@ -30,6 +30,7 @@ import { persist } from "zustand/middleware";
 import { useAuthStore } from "@/store/useAuthStore";
 import {
   toggleWishlistItem as toggleWishlistApi,
+  removeWishlistItem as removeWishlistApi,
   mergeWishlist as mergeWishlistApi,
   getWishlist as getWishlistApi,
 } from "@/lib/api/wishlist.api";
@@ -38,6 +39,7 @@ interface WishlistState {
   ids: string[];
   isSyncing: boolean;
   toggle: (productId: string) => Promise<boolean>;
+  remove: (productId: string) => Promise<void>;
   has: (productId: string) => boolean;
   syncFromServer: () => Promise<void>;
   mergeOnLogin: () => Promise<void>;
@@ -62,7 +64,6 @@ export const useWishlistStore = create<WishlistState>()(
         const exists = get().ids.includes(productId);
         const isLoggedIn = !!useAuthStore.getState().accessToken;
 
-        // Optimistic update — applies to both guest and logged-in paths
         set({
           ids: exists
             ? get().ids.filter((id) => id !== productId)
@@ -70,16 +71,13 @@ export const useWishlistStore = create<WishlistState>()(
         });
 
         if (!isLoggedIn) {
-          // Guest path stops here — localStorage is the source of truth
           return !exists;
         }
 
-        // Logged-in path — confirm with backend
         try {
           const added = await toggleWishlistApi(productId);
           return added;
         } catch (error) {
-          // Roll back the optimistic update on failure
           set({
             ids: exists
               ? [...get().ids, productId]
@@ -89,12 +87,38 @@ export const useWishlistStore = create<WishlistState>()(
         }
       },
 
+      /**
+       * Explicitly remove a product (used by the wishlist page's delete button,
+       * as opposed to toggle which is used by heart icons on product cards).
+       *
+       * This is the single source of truth for "remove" — any screen that
+       * deletes a wishlist item should call this, not the raw API client
+       * directly, so `ids` never drifts from what the backend has.
+       */
+      remove: async (productId: string) => {
+        const wasPresent = get().ids.includes(productId);
+        const isLoggedIn = !!useAuthStore.getState().accessToken;
+
+        // Optimistic local removal
+        set({ ids: get().ids.filter((id) => id !== productId) });
+
+        if (!isLoggedIn) {
+          return;
+        }
+
+        try {
+          await removeWishlistApi(productId);
+        } catch (error) {
+          // Roll back if the backend call fails
+          if (wasPresent) {
+            set({ ids: [...get().ids, productId] });
+          }
+          throw error;
+        }
+      },
+
       has: (productId: string) => get().ids.includes(productId),
 
-      /**
-       * Pull the authoritative wishlist from the server and overwrite local ids.
-       * Call this after merge, or on app load if the user is already logged in.
-       */
       syncFromServer: async () => {
         set({ isSyncing: true });
         try {
@@ -107,11 +131,6 @@ export const useWishlistStore = create<WishlistState>()(
         }
       },
 
-      /**
-       * Runs once, immediately after login succeeds.
-       * Sends whatever was in the guest's localStorage to the backend,
-       * then overwrites local state with the merged server result.
-       */
       mergeOnLogin: async () => {
         const localIds = get().ids;
         set({ isSyncing: true });
@@ -125,11 +144,6 @@ export const useWishlistStore = create<WishlistState>()(
         }
       },
 
-      /**
-       * Call on logout — wipes the wishlist back to guest-empty state.
-       * Prevents the next guest session on this device from inheriting
-       * the previous user's wishlist.
-       */
       clearLocal: () => {
         set({ ids: [] });
       },
