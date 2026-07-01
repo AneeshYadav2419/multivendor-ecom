@@ -1,31 +1,6 @@
-// import { ReactNode } from "react";
-// import { AdminSidebar } from "@/components/admin/sidebar";
-// import { AdminHeader } from "@/components/admin/header";
-// import { AdminGuard } from "@/components/auth/admin-guard";
+"use client";
 
-// export default function AdminLayout({
-//     children,
-// }: {
-//     children: ReactNode;
-// }) {
-//     return (
-//         <AdminGuard>
-//             <div className="flex min-h-screen">
-//                 <AdminSidebar />
-
-//                 <div className="flex flex-col flex-1">
-//                     <AdminHeader />
-
-//                     <main className="flex-1 p-6 overflow-auto">
-//                         {children}
-//                     </main>
-//                 </div>
-//             </div>
-//         </AdminGuard>
-//     );
-// }
-
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { AdminSidebar } from "@/components/admin/sidebar";
 import { AdminHeader } from "@/components/admin/header";
 import { AdminGuard } from "@/components/auth/admin-guard";
@@ -35,16 +10,29 @@ export default function AdminLayout({
 }: {
     children: ReactNode;
 }) {
+    const [isMobileOpen, setIsMobileOpen] = useState(false);
+
     return (
         <AdminGuard>
             <div className="flex h-screen bg-slate-950 text-white overflow-hidden">
-                <AdminSidebar />
+                {/* Mobile overlay */}
+                {isMobileOpen && (
+                    <div
+                        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+                        onClick={() => setIsMobileOpen(false)}
+                    />
+                )}
 
-                <div className="flex flex-1 flex-col overflow-hidden">
-                    <AdminHeader />
+                <AdminSidebar
+                    isMobileOpen={isMobileOpen}
+                    onClose={() => setIsMobileOpen(false)}
+                />
+
+                <div className="flex flex-1 flex-col overflow-hidden min-w-0">
+                    <AdminHeader onMenuClick={() => setIsMobileOpen(true)} />
 
                     <main className="flex-1 overflow-y-auto bg-slate-950">
-                        <div className="mx-auto max-w-[1600px] p-6 lg:p-8">
+                        <div className="mx-auto max-w-[1600px] p-4 sm:p-6 lg:p-8">
                             {children}
                         </div>
                     </main>

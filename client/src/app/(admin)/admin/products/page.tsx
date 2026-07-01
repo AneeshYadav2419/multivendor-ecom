@@ -20,7 +20,7 @@ export default function AdminProductsPage() {
 
     if (!productsData?.data?.length) {
         return (
-            <div className="space-y-6 p-6">
+            <div className="space-y-6">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">
@@ -54,7 +54,7 @@ export default function AdminProductsPage() {
     }
 
     return (
-        <div className="space-y-6 p-6">
+        <div className="space-y-6">
             {/* Header */}
             <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
@@ -95,7 +95,8 @@ export default function AdminProductsPage() {
 
             {/* Table */}
             <div className="overflow-hidden rounded-lg border">
-                <table className="w-full">
+                <div className="overflow-x-auto">
+                <table className="w-full min-w-[640px]">
                     <thead>
                         <tr className="border-b bg-muted/50">
                             <th className="p-3 text-left">Image</th>
@@ -170,6 +171,7 @@ export default function AdminProductsPage() {
                         ))}
                     </tbody>
                 </table>
+                </div>
             </div>
 
             {/* Footer */}

@@ -103,17 +103,17 @@ export default function OrderDetailsPage() {
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-6 backdrop-blur-xl space-y-6">
 
                     {/* Order ID */}
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4">
                         <span className="text-gray-400 text-sm">Order ID</span>
-                        <span className="text-white font-medium">{order.id}</span>
+                        <span className="text-white font-medium break-all text-xs sm:text-sm">{order.id}</span>
                     </div>
 
                     {/* Payment ID */}
-                    <div className="flex justify-between items-center">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-4">
                         <span className="text-gray-400 text-sm flex items-center gap-2">
                             <CreditCard size={14} /> Payment ID
                         </span>
-                        <span className="text-white font-medium">
+                        <span className="text-white font-medium break-all text-xs sm:text-sm">
                             {order.paymentId}
                         </span>
                     </div>

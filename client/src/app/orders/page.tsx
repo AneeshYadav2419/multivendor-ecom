@@ -57,10 +57,11 @@ export default function OrdersPage() {
                                 key={order.id}
                                 className="bg-white/5 border border-white/10 rounded-xl p-5 hover:bg-white/10 transition"
                             >
-                                <div className="flex justify-between items-start">
+                                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                                     <div>
-                                        <p className="text-white font-medium">
-                                            Order #{order.id}
+                                        <p className="text-white font-medium break-all">
+                                            Order <span className="hidden sm:inline">#{order.id}</span>
+                                            <span className="sm:hidden">#{order.id.slice(0, 8)}...</span>
                                         </p>
                                         <p className="text-gray-400 text-sm">
                                             {new Date(order.createdAt).toLocaleDateString()}

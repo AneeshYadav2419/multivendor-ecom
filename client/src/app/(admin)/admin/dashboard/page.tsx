@@ -33,17 +33,17 @@ export default function DashboardPage() {
     return (
         <div className="space-y-8">
             {/* Hero Section */}
-            <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-8 text-white">
+            <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-6 sm:p-8 text-white">
                 <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
 
                 <div className="relative z-10">
-                    <p className="text-indigo-100">Welcome back</p>
+                    <p className="text-indigo-100 text-sm sm:text-base">Welcome back</p>
 
-                    <h1 className="mt-2 text-4xl font-bold">
+                    <h1 className="mt-2 text-2xl sm:text-3xl lg:text-4xl font-bold">
                         AuraMarket Admin Dashboard
                     </h1>
 
-                    <p className="mt-3 max-w-2xl text-indigo-100">
+                    <p className="mt-3 max-w-2xl text-indigo-100 text-sm sm:text-base">
                         Monitor vendors, products, orders and platform performance from one
                         centralized control center.
                     </p>
@@ -51,7 +51,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Main KPI Cards */}
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
                 <StatCard
                     title="Total Users"
                     value={data?.totalUsers ?? 0}
@@ -78,7 +78,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Secondary Metrics */}
-            <div className="grid gap-5 lg:grid-cols-4">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="rounded-2xl border bg-card p-6">
                     <div className="flex items-center gap-3">
                         <TrendingUp className="h-5 w-5 text-emerald-500" />
@@ -133,7 +133,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Quick Actions */}
-            <div className="grid gap-5 lg:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 <div className="rounded-2xl border bg-card p-6">
                     <h3 className="font-semibold">Vendor Management</h3>
 

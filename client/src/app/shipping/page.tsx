@@ -119,13 +119,13 @@ export default function ShippingPage() {
 
       {/* Top Navbar specifically for Checkout */}
       <div className="border-b border-white/5 bg-slate-950/50 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex flex-col sm:flex-row gap-2 py-3 sm:py-0 h-auto sm:h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <span className="text-xl font-bold text-white tracking-tight">AuraMarket</span>
-          <div className="flex items-center gap-2 text-sm font-medium text-slate-500">
-            <span className="text-white flex items-center gap-1"><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Cart</span>
-            <ChevronRight className="h-4 w-4" />
-            <span className="text-indigo-400 font-semibold border-b-2 border-indigo-400 pb-1">Information</span>
-            <ChevronRight className="h-4 w-4" />
+          <div className="flex items-center flex-wrap justify-center gap-1 sm:gap-2 text-xs sm:text-sm font-medium text-slate-500">
+            <span className="text-white flex items-center gap-1"><CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-emerald-500" /> Cart</span>
+            <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="text-indigo-400 font-semibold border-b-2 border-indigo-400 pb-1 flex items-center gap-1">Information</span>
+            <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
             <span>Payment</span>
           </div>
         </div>

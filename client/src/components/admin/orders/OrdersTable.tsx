@@ -29,7 +29,7 @@ export default function OrdersTable({ orders, loading, onSelect }: Props) {
 
     return (
         <div className="overflow-x-auto rounded-xl border border-slate-800">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm min-w-[700px]">
                 <thead className="bg-slate-900 text-slate-400">
                     <tr>
                         <th className="p-3 text-left">Order ID</th>

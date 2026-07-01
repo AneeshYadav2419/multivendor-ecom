@@ -17,10 +17,10 @@ export default function CategoriesPage() {
     }
 
     return (
-        <div className="space-y-6 p-6">
-            <div className="flex items-center justify-between">
+        <div className="space-y-6">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold">
+                    <h1 className="text-2xl sm:text-3xl font-bold">
                         Categories
                     </h1>
 

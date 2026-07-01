@@ -89,7 +89,7 @@ export default function VendorsPage() {
             {/* Page Header */}
 
             <div>
-                <h1 className="text-3xl font-bold">
+                <h1 className="text-2xl sm:text-3xl font-bold">
                     Vendors Management
                 </h1>
 
@@ -100,7 +100,7 @@ export default function VendorsPage() {
 
             {/* Stats */}
 
-            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <StatCard
                     title="Total Vendors"
                     value={vendors.length}
