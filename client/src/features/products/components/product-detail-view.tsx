@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { 
-  Package, 
-  Tag, 
-  Truck, 
-  ShieldCheck, 
-  RotateCcw, 
-  BarChart3, 
+import {
+  Package,
+  Tag,
+  Truck,
+  ShieldCheck,
+  RotateCcw,
+  BarChart3,
   ChevronRight,
   Shield,
   Star
@@ -33,7 +33,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({ product })
   return (
     <main className="min-h-screen bg-[#020617] px-4 pb-24 pt-6 sm:px-6 lg:px-8 selection:bg-indigo-500/30">
       <div className="mx-auto max-w-7xl">
-        
+
         {/* Breadcrumbs */}
         <motion.nav
           initial={{ opacity: 0, y: -10 }}
@@ -51,7 +51,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({ product })
 
         {/* Main Product Section */}
         <div className="grid gap-12 lg:grid-cols-2 xl:gap-24">
-          
+
           {/* Left: Gallery */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -97,10 +97,10 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({ product })
 
             {/* Quick rating summary mock */}
             <div className="mt-4 flex items-center gap-4 border-b border-white/5 pb-8">
-               <div className="flex items-center gap-1">
-                 {[1,2,3,4,5].map(i => <Star key={i} className={cn("h-4 w-4", i <= 4 ? "text-amber-400 fill-amber-400" : "text-slate-700 fill-slate-700")} />)}
-               </div>
-               <span className="text-sm font-medium text-slate-400 hover:text-indigo-400 cursor-pointer transition">124 Reviews</span>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map(i => <Star key={i} className={cn("h-4 w-4", i <= 4 ? "text-amber-400 fill-amber-400" : "text-slate-700 fill-slate-700")} />)}
+              </div>
+              <span className="text-sm font-medium text-slate-400 hover:text-indigo-400 cursor-pointer transition">124 Reviews</span>
             </div>
 
             <div className="mt-8">
@@ -137,7 +137,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({ product })
               <h2 className="text-2xl font-bold tracking-tight text-white mb-6 flex items-center gap-2">
                 <BarChart3 className="h-6 w-6 text-indigo-400" /> Technical Specifications
               </h2>
-              
+
               <div className="overflow-hidden rounded-2xl border border-white/10 bg-slate-900/30 backdrop-blur-md">
                 <table className="w-full text-sm">
                   <tbody className="divide-y divide-white/5">
@@ -160,16 +160,16 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({ product })
                 </table>
               </div>
             </div>
-            
+
             <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-indigo-500/10 to-transparent p-8">
-               <h3 className="text-lg font-bold text-white mb-2">Why buy from AuraMarket?</h3>
-               <p className="text-slate-400 text-sm leading-relaxed mb-6">
-                 We carefully vet all our vendors to ensure you receive only authentic, high-quality products. Your payment is held securely until your order is delivered.
-               </p>
-               <div className="flex gap-4">
-                 <Shield className="h-8 w-8 text-indigo-400" />
-                 <Truck className="h-8 w-8 text-indigo-400" />
-               </div>
+              <h3 className="text-lg font-bold text-white mb-2">Why buy from AuraMarket?</h3>
+              <p className="text-slate-400 text-sm leading-relaxed mb-6">
+                We carefully vet all our vendors to ensure you receive only authentic, high-quality products. Your payment is held securely until your order is delivered.
+              </p>
+              <div className="flex gap-4">
+                <Shield className="h-8 w-8 text-indigo-400" />
+                <Truck className="h-8 w-8 text-indigo-400" />
+              </div>
             </div>
           </div>
 
@@ -182,7 +182,7 @@ export const ProductDetailView: React.FC<ProductDetailViewProps> = ({ product })
         <Separator className="my-20 bg-white/5" />
 
         <div className="space-y-24">
-          <ProductReviews productName={product.name} />
+          <ProductReviews productId={product.id} productName={product.name} />
           <RelatedProducts
             currentProductId={product.id}
             categoryId={product.categoryId}
