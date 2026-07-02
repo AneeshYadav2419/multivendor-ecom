@@ -20,6 +20,7 @@ import settingsRoutes
   from "../modules/settings/settings.routes.js";
 import wishlistRoutes from "../modules/wishlist/wishlist.routes.js";
 import userRoutes from "../modules/user/user.routes.js";
+import reviewRoutes from "../modules/reviews/review.routes.js";
 
 /**
  * Central route registry — single place to see all API mounts.
@@ -55,6 +56,7 @@ export const registerRoutes = (app: Express): void => {
   app.use("/api/coupons", couponRoutes);
   app.use("/api/wishlist", wishlistRoutes);
   app.use("/api/user", userRoutes);
+  app.use("/api/reviews", reviewRoutes);
 
 };
 
