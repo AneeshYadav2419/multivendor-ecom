@@ -27,14 +27,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   index = 0,
 }) => {
   const imageUrl = product.images?.[0] ?? "/file.svg";
+  console.log("Product:", product.name);
+  console.log("Image URL:", imageUrl);
   const outOfStock = product.stock === 0;
   const lowStock = product.stock > 0 && product.stock <= 5;
-  
+
   // Dummy discount logic to showcase the badge for some items
-  
+
   const price = Number(product.price);
-  const hasDiscount = (index % 3) === 0; 
-const originalPrice = hasDiscount ? price * 1.2 : price;
+  const hasDiscount = (index % 3) === 0;
+  const originalPrice = hasDiscount ? price * 1.2 : price;
 
   return (
     <motion.div
