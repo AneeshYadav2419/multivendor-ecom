@@ -34,13 +34,27 @@ export const useAuthStore = create<AuthState>()(
 
       setUser: (user) => set({ user }),
 
-      setAccessToken: (accessToken) => set({ accessToken }),
+      setAccessToken: (accessToken) => {
+        set({ accessToken });
+        if (typeof window !== "undefined") {
+          if (accessToken) {
+            // Set cookie for Edge Middleware access
+            document.cookie = `auramarket-session=${accessToken}; path=/; max-age=86400; SameSite=Strict; Secure`;
+          } else {
+            document.cookie = "auramarket-session=; path=/; max-age=0; SameSite=Strict; Secure";
+          }
+        }
+      },
 
-      logout: () =>
+      logout: () => {
         set({
           user: null,
           accessToken: null,
-        }),
+        });
+        if (typeof window !== "undefined") {
+          document.cookie = "auramarket-session=; path=/; max-age=0; SameSite=Strict; Secure";
+        }
+      },
     }),
     {
       name: "auramarket-auth", // storage key

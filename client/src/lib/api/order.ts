@@ -16,26 +16,12 @@
 //     return res.data;
 // };
 
-import axios from "axios";
+import { api } from "@/lib/api/axios";
 import { OrdersResponse } from "@/types/api";
 import { Order } from "@/types/order";
 
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-const getToken = () => {
-    return localStorage.getItem("token"); // or cookies if you use
-};
-
 export const fetchOrders = async (params?: any) => {
-    const token = getToken();
-
-    const res = await axios.get(`${API_URL}/admin/orders`, {
-        params,
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
-
+    const res = await api.get("/admin/orders", { params });
     return res.data;
 };
 
@@ -43,16 +29,10 @@ export const fetchOrders = async (params?: any) => {
  * GET SINGLE ORDER (FOR DRAWER)
  */
 export const fetchOrderById = async (id: string) => {
-    const token = getToken();
-
-    const res = await axios.get(`${API_URL}/admin/orders/${id}`, {
-        headers: {
-            Authorization: `Bearer ${token}`,
-        },
-    });
-
+    const res = await api.get(`/admin/orders/${id}`);
     return res.data;
 };
+
 /**
  * UPDATE ORDER (status, shipping, etc.)
  */
@@ -64,7 +44,7 @@ export const updateOrder = async (
         trackingId?: string;
     }
 ) => {
-    const res = await axios.patch(`${API_URL}/admin/orders/${id}`, data);
+    const res = await api.patch(`/admin/orders/${id}`, data);
     return res.data;
 };
 
@@ -73,9 +53,8 @@ export const updateOrder = async (
  * (optional shortcut helper for UI buttons)
  */
 export const cancelOrder = async (id: string) => {
-    const res = await axios.patch(`${API_URL}/admin/orders/${id}`, {
+    const res = await api.patch(`/admin/orders/${id}`, {
         fulfillmentStatus: "CANCELLED",
     });
-
     return res.data;
 };

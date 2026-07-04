@@ -147,10 +147,6 @@ export const useLoginMutation = (options?: {
       setAccessToken(accessToken);
       setUser(user);
 
-      // ✅ persist login
-      localStorage.setItem("token", accessToken);
-      localStorage.setItem("user", JSON.stringify(user));
-
       // ✅ merge any guest wishlist into the server wishlist
       // Runs after the token is set, since the merge API call needs auth.
       // Non-blocking failure — login should never fail because of this.

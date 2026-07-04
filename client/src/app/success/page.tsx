@@ -39,7 +39,7 @@ export default function SuccessPage() {
       }
 
       try {
-        const res = await api.get(`/api/orders/${orderId}`);
+        const res = await api.get(`/orders/${orderId}`);
         setOrder(res.data.data);
       } catch (err: any) {
         setError("We couldn't load your order details.");

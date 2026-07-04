@@ -45,7 +45,7 @@ export default function CheckoutPage() {
 
         // CREATE RAZORPAY ORDER
         const res = await api.post("/payments/create-order", {
-          amount: Number(orderAmount),
+          orderId: dbOrderId,
         });
 
         const data = res.data;
@@ -82,7 +82,7 @@ export default function CheckoutPage() {
                 setStatusText("Payment successful! Redirecting...");
                 localStorage.removeItem("dbOrderId");
                 localStorage.removeItem("orderAmount");
-                setTimeout(() => router.push("/success"), 500);
+                setTimeout(() => router.push(`/success?orderId=${dbOrderId}`), 500);
               } else {
                 alert("Payment verification failed");
                 router.push("/shipping");
