@@ -42,8 +42,18 @@ export const createPaymentOrder = async (req: Request, res: Response) => {
         const amountInPaise = Math.round(amount * 100); // Convert rupees → paise
 
         console.log(
-            `[Razorpay] Creating order: ${amountInPaise} paise | rawAmount=${amount}`
+            `[Razorpay] Creating order: ${amountInPaise} paise | rawAmount=₹${amount}`
         );
+
+        // Razorpay test mode max = ₹5,00,000 (50,000,000 paise)
+        // Production limit is ₹10,00,000 per transaction by default.
+        const RAZORPAY_MAX_PAISE = 50_000_000; // ₹5,00,000
+        if (amountInPaise > RAZORPAY_MAX_PAISE) {
+            return res.status(400).json({
+                success: false,
+                message: `Order amount ₹${amount.toFixed(2)} exceeds the maximum allowed per transaction (₹5,00,000). Please split the order or contact support.`,
+            });
+        }
 
         const options = {
             amount: amountInPaise,
