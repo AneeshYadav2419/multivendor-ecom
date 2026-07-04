@@ -8,35 +8,56 @@ import prisma from "../../config/prismaClient.js";
  */
 export const createPaymentOrder = async (req: Request, res: Response) => {
     try {
-        const { amount } = req.body;
+        const { orderId } = req.body;
 
-        if (!amount || isNaN(Number(amount))) {
+        if (!orderId) {
             return res.status(400).json({
                 success: false,
-                message: "Invalid amount provided",
+                message: "Order ID is required",
             });
         }
 
-        // ─── TEST MODE: Always use ₹1 (100 paise) for Razorpay ───────────────
-        // Razorpay test mode can reject amounts due to stale localStorage values,
-        // Prisma Decimal precision, or high product prices. The real order total
-        // is already saved correctly in the DB BEFORE this endpoint is called.
-        const isTestMode = (process.env.RAZORPAY_KEY_ID ?? "").startsWith("rzp_test_");
-        const amountInPaise = isTestMode
-            ? 100  // Always ₹1 in test mode — safe, reliable, no limit errors
-            : Math.round(Number(amount) * 100); // Real paise in production
+        // Fetch order from DB to get the secure, server-calculated total
+        const dbOrder = await prisma.order.findUnique({
+            where: { id: orderId },
+            select: { totalAmount: true, customerId: true }
+        });
+
+        if (!dbOrder) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found",
+            });
+        }
+
+        // Access check: Ensure the order belongs to the requesting customer
+        if (dbOrder.customerId !== req.user!.userId) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized access to this order",
+            });
+        }
+
+        const amount = Number(dbOrder.totalAmount);
+        const amountInPaise = Math.round(amount * 100); // Convert rupees → paise
 
         console.log(
-            `[Razorpay] Creating order: ${amountInPaise} paise | isTestMode=${isTestMode} | rawAmount=${amount}`
+            `[Razorpay] Creating order: ${amountInPaise} paise | rawAmount=${amount}`
         );
 
         const options = {
             amount: amountInPaise,
             currency: "INR",
-            receipt: `receipt_${Date.now()}`,
+            receipt: `rcpt_${Date.now()}`,
         };
 
         const order = await razorpay.orders.create(options);
+
+        // Update the order in the database with the generated razorpayOrderId
+        await prisma.order.update({
+            where: { id: orderId },
+            data: { razorpayOrderId: order.id }
+        });
 
         return res.json({
             success: true,
@@ -55,46 +76,6 @@ export const createPaymentOrder = async (req: Request, res: Response) => {
 /**
  * 2. VERIFY PAYMENT
  */
-// export const verifyPayment = async (req: Request, res: Response) => {
-//     const {
-//         razorpay_order_id,
-//         razorpay_payment_id,
-//         razorpay_signature,
-//         orderId,
-//     } = req.body;
-
-//     const body = razorpay_order_id + "|" + razorpay_payment_id;
-
-//     const secret = process.env.RAZORPAY_SECRET;
-
-//     if (!secret) {
-//         return res.status(500).json({
-//             success: false,
-//             message: "Missing Razorpay secret",
-//         });
-//     }
-
-//     const expectedSignature = crypto
-//         .createHmac("sha256", secret)
-//         .update(body)
-//         .digest("hex");
-
-//     if (expectedSignature === razorpay_signature) {
-//         // 🔥 IMPORTANT: update DB order here
-//         // await Order.update({ status: "PAID" })
-
-//         return res.json({
-//             success: true,
-//             message: "Payment verified successfully",
-//         });
-//     }
-
-//     return res.status(400).json({
-//         success: false,
-//         message: "Invalid signature",
-//     });
-// };
-
 export const verifyPayment = async (req: Request, res: Response) => {
     try {
         const {
@@ -121,6 +102,35 @@ export const verifyPayment = async (req: Request, res: Response) => {
             return res.status(422).json({
                 success: false,
                 message: "Missing payment fields",
+            });
+        }
+
+        // Fetch the database order
+        const dbOrder = await prisma.order.findUnique({
+            where: { id: orderId },
+            select: { customerId: true, razorpayOrderId: true }
+        });
+
+        if (!dbOrder) {
+            return res.status(404).json({
+                success: false,
+                message: "Order not found",
+            });
+        }
+
+        // Ensure order ownership
+        if (dbOrder.customerId !== req.user!.userId) {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized order verification",
+            });
+        }
+
+        // Prevent exploit: Validate that the Razorpay order ID matches what was created for this DB order
+        if (dbOrder.razorpayOrderId !== razorpay_order_id) {
+            return res.status(400).json({
+                success: false,
+                message: "Payment order mismatch",
             });
         }
 

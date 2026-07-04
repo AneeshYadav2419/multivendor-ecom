@@ -4,14 +4,13 @@ import vendorRoutes from "../modules/vendor/vendor.route.js";
 import productRoutes from "../modules/products/product.routes.js";
 import categoryRoutes from "../modules/category/categoryRoutes.js";
 import cartRoutes from "../modules/cart/cart.route.js";
-import orderRoutes from "../modules/order/orderRoutes.js";
+import orderRoutes from "../modules/orders/orders.routes.js";
 import paymentRoutes from "../modules/payments/payment.routes.js";
 import adminRoutes from "../modules/admin/admin.routes.js";
 import adminVendorRoutes from "../modules/admin/admin.routes.js";
 import adminProductRoutes
   from "../modules/admin/adminProduct.routes.js";
-import vendorOrderRoutes
-  from "../modules/orders/vendorOrder.route.js";
+import vendorOrderRoutes from "../modules/orders/vendor-orders.routes.js";
 import analyticsRoutes
   from "../modules/analytics/analytics.routes.js";
 import couponRoutes

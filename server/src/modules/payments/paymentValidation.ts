@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const createPaymentOrderSchema = z.object({
     body: z.object({
-        amount: z.number(),
+        orderId: z.string().min(1),
     }),
 });
 

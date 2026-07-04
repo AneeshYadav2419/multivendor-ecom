@@ -1,8 +1,6 @@
 import prisma from "../../config/prismaClient.js";
 
-export const findVendorByUserId = async (
-    userId: string
-) => {
+export const findVendorByUserId = async (userId: string) => {
     return prisma.vendor.findUnique({
         where: {
             userId,
@@ -10,9 +8,7 @@ export const findVendorByUserId = async (
     });
 };
 
-export const findVendorOrders = async (
-    vendorId: string
-) => {
+export const findVendorOrders = async (vendorId: string) => {
     return prisma.order.findMany({
         where: {
             orderItems: {
@@ -21,7 +17,6 @@ export const findVendorOrders = async (
                 },
             },
         },
-
         include: {
             customer: {
                 select: {
@@ -30,12 +25,10 @@ export const findVendorOrders = async (
                     email: true,
                 },
             },
-
             orderItems: {
                 where: {
                     vendorId,
                 },
-
                 include: {
                     product: {
                         select: {
@@ -48,36 +41,28 @@ export const findVendorOrders = async (
                 },
             },
         },
-
         orderBy: {
             createdAt: "desc",
         },
     });
 };
 
-export const findVendorOrderById = async (
-    orderId: string,
-    vendorId: string
-) => {
+export const findVendorOrderById = async (orderId: string, vendorId: string) => {
     return prisma.order.findFirst({
         where: {
             id: orderId,
-
             orderItems: {
                 some: {
                     vendorId,
                 },
             },
         },
-
         include: {
             customer: true,
-
             orderItems: {
                 where: {
                     vendorId,
                 },
-
                 include: {
                     product: true,
                 },
@@ -86,15 +71,11 @@ export const findVendorOrderById = async (
     });
 };
 
-export const updateOrderStatusRepo = async (
-    orderId: string,
-    status: any
-) => {
+export const updateOrderStatusRepo = async (orderId: string, status: any) => {
     return prisma.order.update({
         where: {
             id: orderId,
         },
-
         data: {
             status,
         },

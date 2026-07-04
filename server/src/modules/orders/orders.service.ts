@@ -1,18 +1,26 @@
-
 import prisma from "../../config/prismaClient.js";
 import { AppError } from "../../common/middlewares/errorMiddleware.js";
-import type { PlaceOrderInput } from "./order.types.js";
+import type { PlaceOrderInput } from "./orders.types.js";
+import {
+    findVendorByUserId,
+    findVendorOrders,
+    findVendorOrderById,
+    updateOrderStatusRepo,
+} from "./orders.repository.js";
 
 /**
- * PLACE ORDER SERVICE (OPTIMIZED)
- * 
+ * ─────────────────────────────────────────────────────────
+ * CUSTOMER SERVICES
+ * ─────────────────────────────────────────────────────────
  */
 
+/**
+ * PLACE ORDER SERVICE
+ */
 export const placeOrderService = async (
     userId: string,
     data: PlaceOrderInput
 ) => {
-
     let totalAmount = 0;
     let discountAmount = 0;
     let finalAmount = 0;
@@ -32,8 +40,6 @@ export const placeOrderService = async (
 
     console.log("COUPON RECEIVED:", couponCode);
 
-
-
     // 1. Get cart
     const cart = await prisma.cart.findUnique({
         where: { userId },
@@ -51,8 +57,6 @@ export const placeOrderService = async (
     }
 
     // 2. Validate + calculate total
-    totalAmount = 0;
-
     for (const item of cart.items) {
         const product = item.product;
 
@@ -74,55 +78,40 @@ export const placeOrderService = async (
 
         totalAmount += Number(product.price) * item.quantity;
     }
+
+    // Apply Coupon
     if (couponCode) {
-        const coupon =
-            await prisma.coupon.findFirst({
-                where: {
-                    code: couponCode,
-                    isActive: true,
-                },
-            });
+        const coupon = await prisma.coupon.findFirst({
+            where: {
+                code: couponCode,
+                isActive: true,
+            },
+        });
 
         if (coupon) {
-            if (
-                coupon.discountType ===
-                "PERCENTAGE"
-            ) {
-                discountAmount =
-                    (totalAmount *
-                        coupon.discountValue) /
-                    100;
-            }
-
-            if (
-                coupon.discountType ===
-                "FIXED"
-            ) {
-                discountAmount =
-                    coupon.discountValue;
+            if (coupon.discountType === "PERCENTAGE") {
+                discountAmount = (totalAmount * coupon.discountValue) / 100;
+            } else if (coupon.discountType === "FIXED") {
+                discountAmount = coupon.discountValue;
             }
         }
     }
 
-    finalAmount =
-        totalAmount - discountAmount;
+    finalAmount = totalAmount - discountAmount;
+    if (finalAmount < 0) finalAmount = 0;
 
     console.log("TOTAL:", totalAmount);
     console.log("DISCOUNT:", discountAmount);
     console.log("FINAL:", finalAmount);
 
-
-
-    // 3. FAST TRANSACTION (optimized)
+    // 3. Save order in db inside a fast transaction
     const order = await prisma.$transaction(async (tx) => {
         console.log("SAVING ORDER AMOUNT:", finalAmount);
-        // 3.1 Create order (minimal include - FAST)
-        const createdOrder = await tx.order.create({
 
+        const createdOrder = await tx.order.create({
             data: {
                 customerId: userId,
                 totalAmount: finalAmount,
-
                 shippingName,
                 shippingPhone,
                 addressLine1,
@@ -132,7 +121,6 @@ export const placeOrderService = async (
                 country,
                 pincode,
                 paymentMethod,
-
                 orderItems: {
                     create: cart.items.map((item) => ({
                         productId: item.productId,
@@ -144,7 +132,7 @@ export const placeOrderService = async (
             },
         });
 
-        // 3.2 Parallel stock update (IMPORTANT FIX)
+        // Parallel stock decrement
         await Promise.all(
             cart.items.map((item) =>
                 tx.product.update({
@@ -161,12 +149,12 @@ export const placeOrderService = async (
         return createdOrder;
     });
 
-    // 4. OUTSIDE transaction (VERY IMPORTANT)
+    // 4. Clear cart item references outside the tx
     await prisma.cartItem.deleteMany({
         where: { cartId: cart.id },
     });
 
-    // 5. Fetch order separately (light query)
+    // 5. Fetch fully resolved order payload
     return await prisma.order.findUnique({
         where: { id: order.id },
         include: {
@@ -185,7 +173,7 @@ export const placeOrderService = async (
 };
 
 /**
- * GET MY ORDERS (OK but slightly optimized)
+ * GET MY ORDERS
  */
 export const getMyOrdersService = async (userId: string) => {
     return await prisma.order.findMany({
@@ -209,10 +197,7 @@ export const getMyOrdersService = async (userId: string) => {
 /**
  * GET SINGLE ORDER
  */
-export const getOrderByIdService = async (
-    orderId: string,
-    userId: string
-) => {
+export const getOrderByIdService = async (orderId: string, userId: string) => {
     const order = await prisma.order.findFirst({
         where: {
             id: orderId,
@@ -237,4 +222,49 @@ export const getOrderByIdService = async (
     }
 
     return order;
+};
+
+/**
+ * ─────────────────────────────────────────────────────────
+ * VENDOR SERVICES
+ * ─────────────────────────────────────────────────────────
+ */
+
+export const getVendorOrdersService = async (userId: string) => {
+    const vendor = await findVendorByUserId(userId);
+    if (!vendor) {
+        throw new AppError("Vendor not found", 404, "VENDOR_NOT_FOUND");
+    }
+    return findVendorOrders(vendor.id);
+};
+
+export const getVendorOrderByIdService = async (userId: string, orderId: string) => {
+    const vendor = await findVendorByUserId(userId);
+    if (!vendor) {
+        throw new AppError("Vendor not found", 404, "VENDOR_NOT_FOUND");
+    }
+
+    const order = await findVendorOrderById(orderId, vendor.id);
+    if (!order) {
+        throw new AppError("Order not found", 404, "ORDER_NOT_FOUND");
+    }
+    return order;
+};
+
+export const updateVendorOrderStatusService = async (
+    userId: string,
+    orderId: string,
+    status: any
+) => {
+    const vendor = await findVendorByUserId(userId);
+    if (!vendor) {
+        throw new AppError("Vendor not found", 404, "VENDOR_NOT_FOUND");
+    }
+
+    const order = await findVendorOrderById(orderId, vendor.id);
+    if (!order) {
+        throw new AppError("Order not found", 404, "ORDER_NOT_FOUND");
+    }
+
+    return updateOrderStatusRepo(orderId, status);
 };
