@@ -8,6 +8,61 @@ import {
   ProductQueryDTO,
   ProductListResult,
 } from "./product.dto.js";
+import { cache } from "../../config/redis.js";
+import { logger } from "../../utils/logger.js";
+
+// ─────────────────────────────────────────────────────────
+// Cache helpers — version-counter strategy
+//
+// Instead of pattern-scanning Redis (not available in ICache interface),
+// we keep a single `products:version` integer.  Every write increments it.
+// Reads embed the version in the cache key → stale keys are never read.
+// ─────────────────────────────────────────────────────────
+
+const PRODUCTS_VERSION_KEY = "products:version";
+const PRODUCTS_CACHE_TTL = 300; // 5 minutes
+
+/**
+ * Returns the current catalog version number (0 if not yet set).
+ */
+const getProductsVersion = async (): Promise<number> => {
+  const v = await cache.get<number>(PRODUCTS_VERSION_KEY);
+  return v ?? 0;
+};
+
+/**
+ * Increments the version counter, effectively invalidating every
+ * previously cached product-list result without needing key scanning.
+ */
+export const invalidateProductsCache = async (): Promise<void> => {
+  const current = await getProductsVersion();
+  const next = current + 1;
+  // Keep the version key alive for a long time (24 h) so it survives TTL expiry
+  await cache.set(PRODUCTS_VERSION_KEY, next, 86400);
+  logger.debug(`[ProductsCache] Version bumped → v${next} (all list caches invalidated)`);
+};
+
+/**
+ * Builds a deterministic, human-readable cache key from filter params
+ * prefixed with the current version so stale data is never returned.
+ */
+const buildCacheKey = (version: number, filters: ProductQueryDTO): string => {
+  const {
+    page = 1,
+    limit = 10,
+    search = "",
+    minPrice = "",
+    maxPrice = "",
+    categoryId = "",
+    sortBy = "newest",
+  } = filters;
+
+  return `products:v${version}:p${page}:l${limit}:s${search}:min${minPrice}:max${maxPrice}:cat${categoryId}:sort${sortBy}`;
+};
+
+// ─────────────────────────────────────────────────────────
+// Slug / vendor helpers
+// ─────────────────────────────────────────────────────────
 
 const generateSlug = (text: string): string =>
   text
@@ -28,7 +83,10 @@ const getVendorIdByUserId = async (userId: string): Promise<string> => {
   return vendor.id;
 };
 
-const ensureUniqueSlug = async (baseSlug: string, excludeProductId?: string): Promise<string> => {
+const ensureUniqueSlug = async (
+  baseSlug: string,
+  excludeProductId?: string
+): Promise<string> => {
   let slug = baseSlug;
   const existingSlug = await prisma.product.findUnique({ where: { slug } });
 
@@ -38,6 +96,10 @@ const ensureUniqueSlug = async (baseSlug: string, excludeProductId?: string): Pr
 
   return slug;
 };
+
+// ─────────────────────────────────────────────────────────
+// CRUD — each mutation invalidates the product-list cache
+// ─────────────────────────────────────────────────────────
 
 export const createProduct = async (userId: string, data: CreateProductDTO) => {
   const vendorId = await getVendorIdByUserId(userId);
@@ -52,7 +114,7 @@ export const createProduct = async (userId: string, data: CreateProductDTO) => {
 
   const slug = await ensureUniqueSlug(generateSlug(data.name));
 
-  return prisma.product.create({
+  const product = await prisma.product.create({
     data: {
       name: data.name,
       description: data.description,
@@ -68,6 +130,11 @@ export const createProduct = async (userId: string, data: CreateProductDTO) => {
       category: { select: { name: true } },
     },
   });
+
+  // Invalidate product listing cache after new product is created
+  await invalidateProductsCache();
+
+  return product;
 };
 
 export const updateProduct = async (
@@ -87,7 +154,11 @@ export const updateProduct = async (
   }
 
   if (existing.vendorId !== vendorId) {
-    throw new AppError("You do not have permission to update this product.", 403, "FORBIDDEN");
+    throw new AppError(
+      "You do not have permission to update this product.",
+      403,
+      "FORBIDDEN"
+    );
   }
 
   const updateData: Prisma.ProductUpdateInput = { ...data };
@@ -97,16 +168,24 @@ export const updateProduct = async (
     updateData.slug = await ensureUniqueSlug(baseSlug, productId);
   }
 
-  return prisma.product.update({
+  const product = await prisma.product.update({
     where: { id: productId },
     data: updateData,
     include: {
       category: { select: { name: true } },
     },
   });
+
+  // Invalidate product listing cache after update
+  await invalidateProductsCache();
+
+  return product;
 };
 
-export const deleteProduct = async (productId: string, userId: string): Promise<void> => {
+export const deleteProduct = async (
+  productId: string,
+  userId: string
+): Promise<void> => {
   const vendorId = await getVendorIdByUserId(userId);
 
   const product = await prisma.product.findUnique({
@@ -119,13 +198,22 @@ export const deleteProduct = async (productId: string, userId: string): Promise<
   }
 
   if (product.vendorId !== vendorId) {
-    throw new AppError("You do not have permission to delete this product.", 403, "FORBIDDEN");
+    throw new AppError(
+      "You do not have permission to delete this product.",
+      403,
+      "FORBIDDEN"
+    );
   }
 
-  await prisma.product.delete({
-    where: { id: productId },
-  });
+  await prisma.product.delete({ where: { id: productId } });
+
+  // Invalidate product listing cache after deletion
+  await invalidateProductsCache();
 };
+
+// ─────────────────────────────────────────────────────────
+// Read — single product (no caching needed, low traffic)
+// ─────────────────────────────────────────────────────────
 
 export const getProductById = async (productId: string) => {
   const product = await prisma.product.findUnique({
@@ -153,7 +241,27 @@ export const getVendorProducts = async (userId: string) => {
   });
 };
 
-export const getAllProducts = async (filters: ProductQueryDTO): Promise<ProductListResult> => {
+// ─────────────────────────────────────────────────────────
+// getAllProducts — Redis-cached product listing
+// ─────────────────────────────────────────────────────────
+
+export const getAllProducts = async (
+  filters: ProductQueryDTO
+): Promise<ProductListResult> => {
+  // 1. Get current catalog version (version bump = all old keys become dead)
+  const version = await getProductsVersion();
+  const cacheKey = buildCacheKey(version, filters);
+
+  // 2. Try cache hit first
+  const cached = await cache.get<ProductListResult>(cacheKey);
+  if (cached) {
+    logger.debug(`[ProductsCache] HIT → ${cacheKey}`);
+    return cached;
+  }
+
+  logger.debug(`[ProductsCache] MISS → ${cacheKey} — querying DB`);
+
+  // 3. Cache miss: build Prisma query
   const page = filters.page ?? 1;
   const limit = filters.limit ?? 10;
   const { search, minPrice, maxPrice, categoryId, sortBy } = filters;
@@ -176,12 +284,8 @@ export const getAllProducts = async (filters: ProductQueryDTO): Promise<ProductL
 
   if (minPrice !== undefined || maxPrice !== undefined) {
     where.price = {};
-    if (minPrice !== undefined) {
-      where.price.gte = minPrice;
-    }
-    if (maxPrice !== undefined) {
-      where.price.lte = maxPrice;
-    }
+    if (minPrice !== undefined) (where.price as Prisma.DecimalFilter).gte = minPrice;
+    if (maxPrice !== undefined) (where.price as Prisma.DecimalFilter).lte = maxPrice;
   }
 
   let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: "desc" };
@@ -203,7 +307,7 @@ export const getAllProducts = async (filters: ProductQueryDTO): Promise<ProductL
     prisma.product.count({ where }),
   ]);
 
-  return {
+  const result: ProductListResult = {
     products,
     pagination: {
       total,
@@ -212,4 +316,10 @@ export const getAllProducts = async (filters: ProductQueryDTO): Promise<ProductL
       totalPages: Math.ceil(total / limit),
     },
   };
+
+  // 4. Store in cache for 5 minutes
+  await cache.set(cacheKey, result, PRODUCTS_CACHE_TTL);
+  logger.debug(`[ProductsCache] SET → ${cacheKey} (TTL: ${PRODUCTS_CACHE_TTL}s)`);
+
+  return result;
 };
